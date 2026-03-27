@@ -1,0 +1,10 @@
+fastapi==0.115.0
+uvicorn==0.30.6
+vertexai
+google-cloud-discoveryengine
+pandas
+pydantic
+python-multipart
+google-cloud-aiplatform[evaluation]
+tqdm
+PyPDF2==3.0.1

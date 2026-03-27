@@ -1,0 +1,62 @@
+[
+    {
+        "record_id": "1001",
+        "redcap_event_name": "visit_1_arm_1",
+        "patient_name": "John Doe",
+        "dob": "1980-05-15",
+        "age": "47",
+        "gender": "Male",
+        "visit_date": "2023-10-25",
+        "referring_physician": "Dr. Smith",
+        "chief_complaint": "Persistent headache and mild nausea for the last 3 days. Worsens with bright lights.",
+        "symptom_onset": "2023-10-15",
+        "pain_severity": "6",
+        "surgical_history": "Appendectomy (2010)",
+        "medications": "Ibuprofen 400mg as needed, Lisinopril 10mg daily",
+        "allergies": "Penicillin (Rash)",
+        "social_history_smoke": "never",
+        "social_history_alcohol": "occasional",
+        "occupation": "Software Engineer",
+        "family_history": [
+            "diabetes"
+        ],
+        "review_systems": [
+            "headache",
+            "nausea",
+            "vision"
+        ],
+        "weight_loss_lbs": "15 lbs over last 6 months ",
+        "nutrition_support": [
+            "tpn",
+            "g_tube",
+            "j_tube"
+        ],
+        "gastric_emptying_scan": "May 2025 showed delayed emptying with 45% retention at 4 hours.",
+        "vomiting_pattern": "Typically occurs intermittently less than one hour after eating; undigested food recognized in vomitus.",
+        "beighton_score": "7",
+        "hypermobility_5pq": [
+            "thumb",
+            "contortion",
+            "dislocation",
+            "double_jointed"
+        ],
+        "medication_denied": [
+            "insulin",
+            "statins",
+            "cgrp",
+            "anti_diabetics"
+        ],
+        "pagi_qol_score": "1.8 (Severe impact on social functioning)",
+        "midas_score": "35 (Indicates severe disability from migraines)",
+        "promis_fatigue_tscore": "75.8 (Indicates patient feels very much run-down)",
+        "medical_history": [
+            "gastroparesis",
+            "hEDS",
+            "mcas",
+            "gerd",
+            "migraines",
+            "insomnia"
+        ],
+        "infectious_history": "Recurrent ear infections, flu, and pneumonia; severe COVID-19 infection with post-COVID syndrome."
+    }
+]
