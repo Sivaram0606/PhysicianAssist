@@ -1,27 +1,27 @@
-# **PhenoFlow: Automated Clinical Narrative & Phenotyping Engine**
+# **ClinGen: Automated Clinical Narrative & Phenotyping Engine**
 
-**PhenoFlow** is a high-performance clinical automation pipeline designed to bridge the gap between structured registry data and professional medical documentation. Built on **Google Cloud Vertex AI**, it transforms complex patient data into validated, peer-reviewed clinical narratives in seconds.
+**ClinGen** is a high-performance clinical automation pipeline designed to bridge the gap between structured registry data and professional medical documentation. Built on **Google Cloud Vertex AI**, it transforms complex patient data into validated, peer-reviewed clinical narratives in seconds.
 
 ---
 
 ## **🌟 Purpose**
-Modern medicine is data-rich but narrative-driven. Clinicians often spend hours manually synthesizing raw JSON registry data into readable History of Present Illness (HPI) or Review of Systems (ROS) sections. **PhenoFlow** automates this synthesis while providing an interactive, "Trust but Verify" audit trail for every claim generated.
+Modern medicine is data-rich but narrative-driven. Clinicians often spend hours manually synthesizing raw JSON registry data into readable History of Present Illness (HPI) or Review of Systems (ROS) sections. **ClinGen** automates this synthesis while providing an interactive, "Trust but Verify" audit trail for every claim generated.
 
 ---
 
 ## **🚀 Key Features**
 
 ### **1. Parallelized Clinical Synthesis**
-Unlike traditional LLM wrappers that generate text sequentially, PhenoFlow utilizes a **High-Concurrency Architecture**. Powered by `asyncio.gather` and **Gemini 2.5 Flash**, the system triggers generation for 8+ clinical sections simultaneously.
+Unlike traditional LLM wrappers that generate text sequentially, ClinGen utilizes a **High-Concurrency Architecture**. Powered by `asyncio.gather` and **Gemini 2.5 Flash**, the system triggers generation for 8+ clinical sections simultaneously.
 * **Impact:** Total generation time is slashed from **30+ seconds to under 4 seconds**.
 
 ### **2. Deep-Link Traceability (Grounding)**
-PhenoFlow solves the "Black Box" problem of AI. Every clinical claim is cross-referenced against the source patient record via **Google Discovery Engine**. 
+ClinGen solves the "Black Box" problem of AI. Every clinical claim is cross-referenced against the source patient record via **Google Discovery Engine**. 
 * **Interactive Citations:** Clicking a citation (e.g., `[*]`) in the narrative instantly highlights the corresponding raw data field in the UI sidebar.
 * **Refiner Logic:** A secondary LLM layer ensures that clinical scores (e.g., MIDAS, PROMIS) are mapped to their specific interpreted meanings.
 
 ### **3. Automated AI Audit (LLM-as-a-Judge)**
-Upon generation, PhenoFlow triggers an independent **Vertex AI EvalTask** that audits the narrative using objective metrics:
+Upon generation, ClinGen triggers an independent **Vertex AI EvalTask** that audits the narrative using objective metrics:
 * **Groundedness:** Verifying claims against source facts.
 * **Coherence & Fluency:** Ensuring professional medical standards.
 * **Safety:** Detecting clinical discrepancies before human review.
@@ -100,4 +100,4 @@ npm run build
 gcloud app deploy
 ```
 
-### Vision: PhenoFlow is designed to empower clinicians with AI that is not only fast but demonstrably grounded in truth.
+### Vision: ClinGen is designed to empower clinicians with AI that is not only fast but demonstrably grounded in truth.
