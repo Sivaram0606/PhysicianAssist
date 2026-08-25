@@ -1,0 +1,26 @@
+{
+  "department_name": "Cardiology",
+  "response": {
+    "target_patient_mrn": "12345678",
+    "narratives": [
+      {
+        "section_id": "1",
+        "section_name": "history_of_present_illness",
+        "narrative": "The patient is a 65-year-old male presenting with **shortness of breath** and *palpitations* starting two days ago. He has a known history of hypertension and atrial fibrillation.",
+        "rank": "High",
+        "usage": {
+          "total_token_count": 150
+        }
+      },
+      {
+        "section_id": "2",
+        "section_name": "current_medications",
+        "narrative": "1. Lisinopril 20mg daily\n2. Metoprolol 50mg BID\n3. Warfarin as directed",
+        "rank": "Medium",
+        "usage": {
+          "total_token_count": 80
+        }
+      }
+    ]
+  }
+}

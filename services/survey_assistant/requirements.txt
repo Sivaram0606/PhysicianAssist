@@ -1,0 +1,6 @@
+google-adk
+google-genai
+google-cloud-aiplatform
+google-adk[extensions]
+google-adk[agent-identity]
+google-adk[a2a]

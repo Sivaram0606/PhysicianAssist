@@ -1,0 +1,26 @@
+# Virtual environments
+.venv/
+
+# Node.js dependencies
+node_modules/
+
+# Testing folders
+test/
+tests/
+
+# Python cache folders
+__pycache__/
+__pycachce__/
+
+# Python egg-info metadata
+mayo_questionaire_agent.egg-info/
+UNKNOWN.egg-info/
+*.egg-info/
+
+# ADK tools
+.adk/
+.adk-ignore
+session.db
+
+# Workspace instructions
+GEMINI.md

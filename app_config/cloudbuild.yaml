@@ -1,0 +1,87 @@
+# Google Cloud Build Pipeline Configuration for Mayo Clinic Questionnaire Agent
+# Automates:
+# - Backend: Dockerization, push to Artifact Registry, and deployment to Google Cloud Run
+# - Frontend: Node building and high-performance static file deployment to Google App Engine (GAE)
+
+steps:
+  # === BACKEND PIPELINE ===
+  # 1. Build the Backend Docker Image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/clinic-survey/backend:$BUILD_ID',
+      '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/clinic-survey/backend:latest',
+      'services/survey_tailor/app'
+    ]
+    id: 'build-backend'
+
+  # 2. Push Backend Image (Build ID Tag) to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/clinic-survey/backend:$BUILD_ID']
+    id: 'push-backend-commit'
+
+  # 3. Push Backend Image (Latest Tag) to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/clinic-survey/backend:latest']
+    id: 'push-backend-latest'
+
+  # 4. Deploy the Backend Microservice to Google Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args: [
+      'run', 'deploy', 'clinical-survey-intelligence-backend',
+      '--image', 'us-central1-docker.pkg.dev/$PROJECT_ID/clinic-survey/backend:$BUILD_ID',
+      '--region', 'us-central1',
+      '--platform', 'managed',
+      '--allow-unauthenticated',
+      '--service-account', 'anaphor@pocprojects-502518.iam.gserviceaccount.com',
+      '--set-env-vars', 'GOOGLE_CLOUD_PROJECT=pocprojects-502518,GOOGLE_CLOUD_LOCATION=global,GECX_PROJECT_ID=pocprojects-502518,GECX_APP_ID=d23b67c0-8ebf-4cdb-a77f-aec49bd1901e,GECX_DEPLOYMENT_ID=345df3d9-9f05-45c1-b27d-7a58b3b28e52,GECX_APP_VERSION=56bfcf2c-3018-4b12-9abf-5a44ec53eb9e',
+      '--port', '8000'
+    ]
+    id: 'deploy-backend'
+
+  # === FRONTEND PIPELINE ===
+  # 5. Build the Frontend Docker Image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '--build-arg', 'VITE_API_URL=https://clinical-survey-intelligence-backend-256442359139.us-central1.run.app',
+      '--build-arg', 'BACKEND_HOST=clinical-survey-intelligence-backend-256442359139.us-central1.run.app',
+      '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/clinic-survey/frontend:$BUILD_ID',
+      '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/clinic-survey/frontend:latest',
+      './frontend'
+    ]
+    id: 'build-frontend'
+
+  # 6. Push Frontend Image (Build ID Tag) to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/clinic-survey/frontend:$BUILD_ID']
+    id: 'push-frontend-commit'
+
+  # 7. Push Frontend Image (Latest Tag) to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/clinic-survey/frontend:latest']
+    id: 'push-frontend-latest'
+
+  # 8. Deploy the Frontend Microservice to Google Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args: [
+      'run', 'deploy', 'clinical-survey-intelligence-frontend',
+      '--image', 'us-central1-docker.pkg.dev/$PROJECT_ID/clinic-survey/frontend:$BUILD_ID',
+      '--region', 'us-central1',
+      '--platform', 'managed',
+      '--allow-unauthenticated',
+      '--service-account', 'anaphor@pocprojects-502518.iam.gserviceaccount.com',
+      '--port', '3000'
+    ]
+    id: 'deploy-frontend'
+
+# Register output images
+images:
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/clinic-survey/backend:$BUILD_ID'
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/clinic-survey/frontend:$BUILD_ID'
+
+# Direct build logging to Cloud Logging only (best practice)
+options:
+  logging: CLOUD_LOGGING_ONLY

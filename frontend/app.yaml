@@ -1,0 +1,23 @@
+# Google App Engine Standard Environment Configuration
+# Deploys the compiled React (Vite) single-page application as high-performance static files
+
+service: clinical-survey-intelligence-frontend
+runtime: python312
+
+handlers:
+  # 1. Serve compiled static assets (JS, CSS) directly from GAE CDN
+  - url: /assets
+    static_dir: dist/assets
+    secure: always
+
+  # 2. Serve static metadata and root assets (manifests, icons, package jsons)
+  - url: /(.*\.(json|png|ico|html))$
+    static_files: dist/\1
+    upload: dist/(.*\.(json|png|ico|html))$
+    secure: always
+
+  # 3. Route all other request paths to index.html to allow React Router (SPA) client-side routing
+  - url: /.*
+    static_files: dist/index.html
+    upload: dist/index.html
+    secure: always

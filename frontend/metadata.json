@@ -1,0 +1,4 @@
+{
+  "name": "Clinical Narrative Dashboard",
+  "description": "A professional dashboard for ingesting and visualizing clinical narratives from JSON files, featuring Markdown rendering and responsive grid layouts."
+}

@@ -1,0 +1,3 @@
+Analyze the patient narrative and treatment plan against the detailed REDCap forms metadata. The patient is appearing for the followup visit.
+You MUST recommend forms ONLY from the exact list of available short snake_case form names provided in the metadata headers (e.g., 'shaq_scleroderma_health_assessment_questionnaire', 'compass31'). 
+Do not invent or generalize form names. For each recommended form, provide its exact snake_case form_name and a brief rationale.
