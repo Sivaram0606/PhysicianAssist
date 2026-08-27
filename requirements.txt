@@ -48,7 +48,6 @@ google-auth==2.57.0
 google-auth-httplib2==0.4.2
 google-auth-oauthlib==1.4.1
 google-cloud-agentidentitycredentials==0.1.0
-google-cloud-aiplatform==1.165.1
 google-cloud-bigquery==3.44.0
 google-cloud-core==2.7.0
 google-cloud-discoveryengine==0.20.0
