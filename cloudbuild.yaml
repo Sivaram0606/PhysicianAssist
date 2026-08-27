@@ -41,30 +41,47 @@ steps:
     ]
     id: 'deploy-backend'
 
-  # === FRONTEND PIPELINE (Google App Engine) ===
-  # 5. Install Node Dependencies and Build Static React UI with Production Cloud Run API URL
-  - name: 'node:24-alpine'
-    entrypoint: 'sh'
-    args:
-      - '-c'
-      - |
-        cd frontend
-        npm install --silent
-        VITE_API_URL=https://clingen-backend-256442359139.us-central1.run.app npm run build
-    id: 'build-frontend-assets'
+  # === FRONTEND PIPELINE (Google Cloud Run) ===
+  # 5. Build Frontend Docker Image (passing API URL and backend host configuration)
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/clingen/clingen-frontend:$BUILD_ID',
+      '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/clingen/clingen-frontend:latest',
+      '--build-arg', 'VITE_API_URL=https://clingen-backend-256442359139.us-central1.run.app',
+      '--build-arg', 'BACKEND_HOST=clingen-backend-256442359139.us-central1.run.app',
+      '--build-arg', 'BACKEND_SCHEME=https',
+      '-f', 'frontend/Dockerfile',
+      './frontend'
+    ]
+    id: 'build-frontend'
 
-  # 6. Deploy compiled frontend assets directly to GAE Standard Environment
+  # 6. Push Frontend Image (Build ID Tag) to GCP Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/clingen/clingen-frontend:$BUILD_ID']
+    id: 'push-frontend-commit'
+
+  # 7. Push Frontend Image (Latest Tag) to GCP Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/clingen/clingen-frontend:latest']
+    id: 'push-frontend-latest'
+
+  # 8. Deploy Frontend to Google Cloud Run on Port 3000
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
     args: [
-      'app', 'deploy', 'frontend/app.yaml',
-      '--project=$PROJECT_ID',
-      '--quiet'
+      'run', 'deploy', 'clingen-frontend',
+      '--image', 'us-central1-docker.pkg.dev/$PROJECT_ID/clingen/clingen-frontend:$BUILD_ID',
+      '--region', 'us-central1',
+      '--platform', 'managed',
+      '--allow-unauthenticated',
+      '--port', '3000'
     ]
     id: 'deploy-frontend'
 
 images:
   - 'us-central1-docker.pkg.dev/$PROJECT_ID/clingen/clingen-backend:$BUILD_ID'
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/clingen/clingen-frontend:$BUILD_ID'
 
 options:
   logging: CLOUD_LOGGING_ONLY
