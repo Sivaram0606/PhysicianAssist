@@ -24,7 +24,7 @@ Chatbot UX for Research & Patients
 Python Email Sending Script
 Improving Travel and Arrival Message
 AI-Powered Medical Questionnaire Generator
-AI-Powered Questionnaire Generation for Mayo Clinic
+AI-Powered Questionnaire Generation for Clinical Research
 Spark Dashboard Enhancements
 Interactive Simulation Data Dashboard
 Understanding CNS Viewer Software
@@ -135,13 +135,13 @@ root_agent = LlmAgent(
 
   description=(
 
-      'You are the Mayo Clinic Patient Survey Assistant, an enterprise-grade medical chatbot. Your primary goal is to deliver a customized clinical questionnaire to the patient and record their responses empathetically and accurately.'
+      'You are the Clinical Research Patient Survey Assistant, an enterprise-grade medical chatbot. Your primary goal is to deliver a customized clinical questionnaire to the patient and record their responses empathetically and accurately.'
 
   ),
 
   sub_agents=[],
 
-  instruction='You are the Mayo Clinic Patient Survey Assistant, an enterprise-grade medical chatbot. Your primary goal is to deliver a customized clinical questionnaire to the patient and record their responses empathetically and accurately.\n\n## Instructions\n1. **Retrieve the Custom Survey:** At the beginning of the interaction, you MUST use the Google Cloud Storage (`gcp-cloud-storage`) MCP server to fetch the required survey configuration file. \n   * **Path Structure:** Look for the file under the path: `clinical-chatbot-pocprojects/surveys/{patient_mrn}/`\n   * **Required Identifiers:** You will need the patient\'s `mrn` and the specific `survey_event_id` to locate the correct file. These should be provided in the session context; if they are missing, politely ask the patient or coordinator for them before proceeding.\n\n2. **Examine the Survey:** Once the file is successfully fetched via the GCS server, carefully review the `deployed_questions` array within the survey data to map out the assessment.\n\n3. **Sequential Questioning:** Ask the patient each question from the customized survey one by one.\n   * Do NOT ask multiple questions at once.\n   * Wait for the patient\'s full response before proceeding to the next question.\n   * If a question includes a `choices` or options array, clearly present those choices to the patient to guide their selection.\n\n4. **Tone & Empathy:** Maintain a highly professional, compassionate, and reassuring clinical tone. Always acknowledge and validate any discomfort, pain, or symptoms the patient mentions before moving on to the next question.\n\n5. **Clarifications:** If the patient asks for clarification on a medical term, explain it in simple, layman-friendly language. Do NOT provide diagnoses, prognoses, or actionable medical advice.\n\n6. **Conclusion:** Once all questions from the customized survey have been answered, summarize their responses briefly, thank the patient for their time, and inform them that their responses have been securely recorded for their clinical team.',
+  instruction='You are the Clinical Research Patient Survey Assistant, an enterprise-grade medical chatbot. Your primary goal is to deliver a customized clinical questionnaire to the patient and record their responses empathetically and accurately.\n\n## Instructions\n1. **Retrieve the Custom Survey:** At the beginning of the interaction, you MUST use the Google Cloud Storage (`gcp-cloud-storage`) MCP server to fetch the required survey configuration file. \n   * **Path Structure:** Look for the file under the path: `clinical-chatbot-pocprojects/surveys/{patient_mrn}/`\n   * **Required Identifiers:** You will need the patient\'s `mrn` and the specific `survey_event_id` to locate the correct file. These should be provided in the session context; if they are missing, politely ask the patient or coordinator for them before proceeding.\n\n2. **Examine the Survey:** Once the file is successfully fetched via the GCS server, carefully review the `deployed_questions` array within the survey data to map out the assessment.\n\n3. **Sequential Questioning:** Ask the patient each question from the customized survey one by one.\n   * Do NOT ask multiple questions at once.\n   * Wait for the patient\'s full response before proceeding to the next question.\n   * If a question includes a `choices` or options array, clearly present those choices to the patient to guide their selection.\n\n4. **Tone & Empathy:** Maintain a highly professional, compassionate, and reassuring clinical tone. Always acknowledge and validate any discomfort, pain, or symptoms the patient mentions before moving on to the next question.\n\n5. **Clarifications:** If the patient asks for clarification on a medical term, explain it in simple, layman-friendly language. Do NOT provide diagnoses, prognoses, or actionable medical advice.\n\n6. **Conclusion:** Once all questions from the customized survey have been answered, summarize their responses briefly, thank the patient for their time, and inform them that their responses have been securely recorded for their clinical team.',
 
   tools=[
 
@@ -171,7 +171,7 @@ Here is a production-ready project structure and step-by-step setup to deploy yo
 Organize your repository so that agent logic, configuration, and deployment scripts are clearly separated:
 
 Plaintext
-mayo_survey_agent/
+patient_survey_agent/
 ├── config/
 │   └── requirements.txt
 ├── src/
@@ -236,7 +236,7 @@ from google.adk.tools.mcp_tool.mcp_toolset import McpToolset
 from src.custom_models import GlobalGemini
 from src.sub_agents import patient_survey_assistant_url_context_agent
 
-SURVEY_INSTRUCTIONS = """You are the Mayo Clinic Patient Survey Assistant, an enterprise-grade medical chatbot. Your primary goal is to deliver a customized clinical questionnaire to the patient and record their responses empathetically and accurately.
+SURVEY_INSTRUCTIONS = """You are the Clinical Research Patient Survey Assistant, an enterprise-grade medical chatbot. Your primary goal is to deliver a customized clinical questionnaire to the patient and record their responses empathetically and accurately.
 
 ## Instructions
 1. **Retrieve the Custom Survey:** At the beginning of the interaction, you MUST use the Google Cloud Storage (`gcp-cloud-storage`) MCP server to fetch the required survey configuration file. 
@@ -260,7 +260,7 @@ root_agent = LlmAgent(
     name="Patient_Survey_Assistant",
     model=GlobalGemini(model="gemini-3.5-flash"),
     description=(
-        "You are the Mayo Clinic Patient Survey Assistant, an enterprise-grade medical chatbot. "
+        "You are the Clinical Research Patient Survey Assistant, an enterprise-grade medical chatbot. "
         "Your primary goal is to deliver a customized clinical questionnaire to the patient and "
         "record their responses empathetically and accurately."
     ),
@@ -307,10 +307,10 @@ def deploy_agent(project_id: str, location: str, display_name: str):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Deploy Mayo Survey Assistant to Agent Engine.")
+    parser = argparse.ArgumentParser(description="Deploy Patient Survey Assistant to Agent Engine.")
     parser.add_argument("--project", required=True, help="GCP Project ID")
     parser.add_argument("--region", default="us-central1", help="GCP Region for Agent Engine (default: us-central1)")
-    parser.add_argument("--display-name", default="Mayo-Patient-Survey-Assistant", help="Display Name for the deployment")
+    parser.add_argument("--display-name", default="Patient-Patient-Survey-Assistant", help="Display Name for the deployment")
 
     args = parser.parse_args()
 
@@ -344,7 +344,7 @@ Bash
 python deploy.py \
   --project YOUR_GCP_PROJECT_ID \
   --region us-central1 \
-  --display-name "Mayo-Patient-Survey-Assistant-v1"
+  --display-name "Patient-Patient-Survey-Assistant-v1"
 Want me to generate an integration test script to verify responses on Agent Engine?
 
 Yes
@@ -355,7 +355,7 @@ Here is the streamlined single-file approach where everything is consolidated in
 
 1. Updated Project Structure
 Plaintext
-mayo_survey_agent/
+patient_survey_agent/
 ├── agent.py          # Main file containing agents, models, and execution/deploy entrypoint
 ├── requirements.txt   # Dependencies file
 └── deploy.py         # Deployment script importing from agent.py
@@ -401,17 +401,17 @@ patient_survey_assistant_url_context_agent = LlmAgent(
     tools=[url_context],
 )
 
-# 2. Root Mayo Patient Survey Assistant Agent
+# 2. Root Patient Patient Survey Assistant Agent
 root_agent = LlmAgent(
     name="Patient_Survey_Assistant",
     model=GlobalGemini(model="gemini-3.5-flash"),
     description=(
-        "You are the Mayo Clinic Patient Survey Assistant, an enterprise-grade medical chatbot. "
+        "You are the Clinical Research Patient Survey Assistant, an enterprise-grade medical chatbot. "
         "Your primary goal is to deliver a customized clinical questionnaire to the patient and "
         "record their responses empathetically and accurately."
     ),
     sub_agents=[],
-    instruction="""You are the Mayo Clinic Patient Survey Assistant, an enterprise-grade medical chatbot. Your primary goal is to deliver a customized clinical questionnaire to the patient and record their responses empathetically and accurately.
+    instruction="""You are the Clinical Research Patient Survey Assistant, an enterprise-grade medical chatbot. Your primary goal is to deliver a customized clinical questionnaire to the patient and record their responses empathetically and accurately.
 
 ## Instructions
 1. **Retrieve the Custom Survey:** At the beginning of the interaction, you MUST use the Google Cloud Storage (`gcp-cloud-storage`) MCP server to fetch the required survey configuration file. 
@@ -471,7 +471,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Deploy agent.py to Vertex AI Agent Engine")
     parser.add_argument("--project", required=True, help="GCP Project ID")
     parser.add_argument("--region", default="us-central1", help="Target region (default: us-central1)")
-    parser.add_argument("--display-name", default="Mayo-Patient-Survey-Assistant", help="Deployment display name")
+    parser.add_argument("--display-name", default="Patient-Patient-Survey-Assistant", help="Deployment display name")
 
     args = parser.parse_args()
     deploy(project_id=args.project, location=args.region, display_name=args.display_name)
@@ -482,14 +482,14 @@ Bash
 python deploy.py \
   --project YOUR_GCP_PROJECT_ID \
   --region us-central1 \
-  --display-name "Mayo-Patient-Survey-Assistant-v1"
+  --display-name "Patient-Patient-Survey-Assistant-v1"
 save the prompts inside prompts folder
 
 Here is the updated structure and code with all prompt text extracted into markdown/text files inside a dedicated prompts/ folder for cleaner management and easier versioning.
 
 1. Updated Project Structure
 Plaintext
-mayo_survey_agent/
+patient_survey_agent/
 ├── prompts/
 │   ├── url_context_instruction.txt
 │   ├── survey_assistant_instruction.md
@@ -503,10 +503,10 @@ Plaintext
 Use the UrlContextTool to retrieve content from provided URLs.
 prompts/survey_assistant_description.txt
 Plaintext
-You are the Mayo Clinic Patient Survey Assistant, an enterprise-grade medical chatbot. Your primary goal is to deliver a customized clinical questionnaire to the patient and record their responses empathetically and accurately.
+You are the Clinical Research Patient Survey Assistant, an enterprise-grade medical chatbot. Your primary goal is to deliver a customized clinical questionnaire to the patient and record their responses empathetically and accurately.
 prompts/survey_assistant_instruction.md
 Markdown
-You are the Mayo Clinic Patient Survey Assistant, an enterprise-grade medical chatbot. Your primary goal is to deliver a customized clinical questionnaire to the patient and record their responses empathetically and accurately.
+You are the Clinical Research Patient Survey Assistant, an enterprise-grade medical chatbot. Your primary goal is to deliver a customized clinical questionnaire to the patient and record their responses empathetically and accurately.
 
 ## Instructions
 1. **Retrieve the Custom Survey:** At the beginning of the interaction, you MUST use the Google Cloud Storage (`gcp-cloud-storage`) MCP server to fetch the required survey configuration file. 
@@ -571,7 +571,7 @@ patient_survey_assistant_url_context_agent = LlmAgent(
     tools=[url_context],
 )
 
-# 2. Root Mayo Patient Survey Assistant Agent
+# 2. Root Patient Patient Survey Assistant Agent
 root_agent = LlmAgent(
     name="Patient_Survey_Assistant",
     model=GlobalGemini(model="gemini-3.5-flash"),
@@ -623,7 +623,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Deploy agent.py to Vertex AI Agent Engine")
     parser.add_argument("--project", required=True, help="GCP Project ID")
     parser.add_argument("--region", default="us-central1", help="Target region (default: us-central1)")
-    parser.add_argument("--display-name", default="Mayo-Patient-Survey-Assistant", help="Deployment display name")
+    parser.add_argument("--display-name", default="Patient-Patient-Survey-Assistant", help="Deployment display name")
 
     args = parser.parse_args()
     deploy(project_id=args.project, location=args.region, display_name=args.display_name)
@@ -654,7 +654,7 @@ Clone the repository and enter project folder:
 
 Bash
 git clone <repository-url>
-cd mayo_survey_agent
+cd patient_survey_agent
 Create and activate a virtual environment:
 
 Bash
@@ -676,7 +676,7 @@ Bash
 python deploy.py \\
   --project YOUR_GCP_PROJECT_ID \\
   --region us-central1 \\
-  --display-name "Mayo-Patient-Survey-Assistant-v1"
+  --display-name "Patient-Patient-Survey-Assistant-v1"
 Deployment Flags
 --project: (Required) Your GCP Project ID.
 
@@ -715,7 +715,7 @@ Project File Structure Summary
 Here is the complete project layout created across your files:
 
 Plaintext
-mayo_survey_agent/
+patient_survey_agent/
 ├── prompts/
 │   ├── url_context_instruction.txt      # Instructions for URL fetcher sub-agent
 │   ├── survey_assistant_description.txt  # Description of root agent
@@ -730,7 +730,7 @@ Here is the updated configuration setup using a dedicated config.py file to hand
 
 1. Updated Project Structure
 Plaintext
-mayo_survey_agent/
+patient_survey_agent/
 ├── prompts/
 │   ├── url_context_instruction.txt
 │   ├── survey_assistant_description.txt
@@ -750,7 +750,7 @@ from pathlib import Path
 
 
 class Config:
-    """Central configuration management for Mayo Survey Agent."""
+    """Central configuration management for Patient Survey Agent."""
 
     # Base Directory Paths
     BASE_DIR: Path = Path(__file__).parent
@@ -759,7 +759,7 @@ class Config:
     # Environment & Cloud Configuration
     GCP_PROJECT_ID: str = os.getenv("GCP_PROJECT_ID", "your-gcp-project-id")
     GCP_REGION: str = os.getenv("GCP_REGION", "us-central1")
-    AGENT_DISPLAY_NAME: str = os.getenv("AGENT_DISPLAY_NAME", "Mayo-Patient-Survey-Assistant")
+    AGENT_DISPLAY_NAME: str = os.getenv("AGENT_DISPLAY_NAME", "Patient-Patient-Survey-Assistant")
 
     # Model Configuration
     # gemini-3.5-flash requires global location routing
@@ -821,7 +821,7 @@ patient_survey_assistant_url_context_agent = LlmAgent(
     tools=[url_context],
 )
 
-# 2. Root Mayo Patient Survey Assistant Agent
+# 2. Root Patient Patient Survey Assistant Agent
 root_agent = LlmAgent(
     name="Patient_Survey_Assistant",
     model=GlobalGemini(model=config.MODEL_NAME),
@@ -903,7 +903,7 @@ Cloud Storage API (storage.googleapis.com)
 Navigate into the project directory:
 
 Bash
-cd mayo_survey_agent
+cd patient_survey_agent
 Create and activate a virtual environment:
 
 Bash
@@ -932,7 +932,7 @@ Bash
 python deploy.py \\
   --project YOUR_GCP_PROJECT_ID \\
   --region us-central1 \\
-  --display-name "Mayo-Patient-Survey-Assistant-v1"
+  --display-name "Patient-Patient-Survey-Assistant-v1"
 Deployment Flags
 --project: (Optional) Your GCP Project ID (defaults to GCP_PROJECT_ID in config.py).
 
@@ -968,7 +968,7 @@ README
 Open
 
 Markdown
-# Mayo Clinic Patient Survey Assistant (Vertex AI Agent Engine)
+# Clinical Research Patient Survey Assistant (Vertex AI Agent Engine)
 
 An enterprise-grade clinical survey agent built using the **Google Agent Development Kit (ADK)** and deployed to **Vertex AI Agent Engine**. 
 
@@ -979,7 +979,7 @@ The assistant dynamically fetches patient-specific clinical surveys from Google 
 ## 📁 Project Structure
 
 ```text
-mayo_survey_agent/
+patient_survey_agent/
 ├── prompts/
 │   ├── url_context_instruction.txt      # Instructions for the URL fetcher sub-agent
 │   ├── survey_assistant_description.txt  # High-level description of the root agent
@@ -1015,7 +1015,7 @@ Cloud Storage API (storage.googleapis.com)
 Navigate into the project directory:
 
 Bash
-cd mayo_survey_agent
+cd patient_survey_agent
 Create and activate a virtual environment:
 
 Bash
@@ -1044,7 +1044,7 @@ Bash
 python deploy.py \
   --project YOUR_GCP_PROJECT_ID \
   --region us-central1 \
-  --display-name "Mayo-Patient-Survey-Assistant-v1"
+  --display-name "Patient-Patient-Survey-Assistant-v1"
 Deployment Flags
 --project: (Optional) Your GCP Project ID (defaults to GCP_PROJECT_ID in config.py).
 
@@ -1068,7 +1068,7 @@ Completion: Generates a brief response summary and confirms secure storage for t
 
 Your Google chats aren’t used to improve our models. Gemini is AI and can make mistakes. Your privacy & GeminiOpens in a new window
 
-# Mayo Clinic Patient Survey Assistant (Vertex AI Agent Engine)
+# Clinical Research Patient Survey Assistant (Vertex AI Agent Engine)
 
 An enterprise-grade clinical survey agent built using the **Google Agent Development Kit (ADK)** and deployed to **Vertex AI Agent Engine**. 
 
@@ -1079,7 +1079,7 @@ The assistant dynamically fetches patient-specific clinical surveys from Google 
 ## 📁 Project Structure
 
 ```text
-mayo_survey_agent/
+patient_survey_agent/
 ├── prompts/
 │   ├── url_context_instruction.txt      # Instructions for the URL fetcher sub-agent
 │   ├── survey_assistant_description.txt  # High-level description of the root agent
@@ -1155,7 +1155,7 @@ Deploy the agent to your Google Cloud project using `deploy.py`:
 python deploy.py \
   --project YOUR_GCP_PROJECT_ID \
   --region us-central1 \
-  --display-name "Mayo-Patient-Survey-Assistant-v1"
+  --display-name "Patient-Patient-Survey-Assistant-v1"
 ```
 
 ### Deployment Flags

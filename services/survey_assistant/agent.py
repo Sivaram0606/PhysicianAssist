@@ -84,7 +84,7 @@ class GlobalGemini(Gemini):
 
     @cached_property
     def api_client(self) -> Client:
-        return Client(vertexai=True, location=config.MODEL_LOCATION)
+        return Client(vertexai=True, project=config.GCP_PROJECT_ID, location=config.MODEL_LOCATION)
 
 
 # Initialize AgentRegistry to retrieve the authenticated McpToolset
@@ -97,14 +97,39 @@ mcp_toolset = registry.get_mcp_toolset(
     f"projects/{config.GCP_PROJECT_ID}/locations/global/mcpServers/{config.MCP_SERVER_NAME}"
 )
 
-# 2. Root Mayo Patient Survey Assistant Agent
+def get_survey_questions(mrn: str, survey_id: str) -> str:
+    """
+    Retrieve the customized survey questions for a patient directly from Google Cloud Storage (GCS).
+    Use this tool to fetch the customized survey using the patient's mrn and survey_id.
+    """
+    import json
+    from google.cloud import storage
+    try:
+        from settings import SURVEY_BUCKET_NAME
+        gcs_client = storage.Client()
+        bucket = gcs_client.bucket(SURVEY_BUCKET_NAME)
+        gcs_key = f"deployed_surveys/{mrn}_{survey_id}.json"
+        blob = bucket.blob(gcs_key)
+        
+        if blob.exists():
+            content = blob.download_as_string().decode("utf-8")
+            data = json.loads(content)
+            deployed_qs = data.get("deployed_questions", [])
+            return json.dumps(deployed_qs, indent=2)
+            
+        return f"No survey found in GCS bucket '{SURVEY_BUCKET_NAME}' for the given MRN {mrn} and Survey ID {survey_id}."
+    except Exception as e:
+        return f"Error reading survey from GCS: {str(e)}"
+
+# 2. Root Patient Patient Survey Assistant Agent
 root_agent = LlmAgent(
     name="Patient_Survey_Assistant",
     model=GlobalGemini(model=config.MODEL_NAME),
     description=config.get_prompt(config.SURVEY_DESCRIPTION_FILE),
     sub_agents=[],
-    instruction=config.get_prompt(config.SURVEY_INSTRUCTION_FILE),
+    instruction=config.get_prompt(config.SURVEY_INSTRUCTION_FILE) + "\n\nUse the 'get_survey_questions' tool to fetch the customized survey from Google Cloud Storage using the patient's mrn and survey_id.",
     tools=[
+        get_survey_questions,
         mcp_toolset,
     ],
 )

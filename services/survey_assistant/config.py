@@ -9,7 +9,7 @@ if monorepo_root not in sys.path:
     sys.path.insert(0, monorepo_root)
 
 # Pull configuration properties from the centralized settings module
-from app_config.settings import (
+from settings import (
     GOOGLE_CLOUD_PROJECT as GCP_PROJECT_ID,
     GCP_REGION,
     STAGING_BUCKET,
@@ -22,7 +22,7 @@ from app_config.settings import (
 )
 
 class Config:
-    """Central configuration management for Mayo Survey Agent (Reasoning Engine)."""
+    """Central configuration management for Patient Survey Agent (Reasoning Engine)."""
 
     BASE_DIR: Path = Path(__file__).parent
     PROMPTS_DIR: Path = BASE_DIR / "prompts"

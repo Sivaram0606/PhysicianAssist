@@ -60,33 +60,6 @@ const App: React.FC = () => {
     setCoordinatorTab('tailor'); // Jump straight into the tailoring dashboard!
   };
 
-  // If user is a patient, render ChatInterface in absolute full-screen mode directly at the root
-  if (userRole === 'patient') {
-    return (
-      <div className="w-screen h-screen overflow-hidden">
-        <ChatInterface 
-          role="patient" 
-          onQuestionnaireGenerated={(result, templateId) => {
-            setQuestionnaireResult(result);
-            setSelectedTemplate(templateId);
-          }}
-        />
-      </div>
-    );
-  }
-
-  // To preserve the gorgeous dark radial styling of ClinGen, render it as a full-page view without the white global navbar on top
-  if (userRole === 'coordinator' && coordinatorTab === 'clingen') {
-    return (
-      <ClinGenSynthesizer 
-        onExportNarrative={handleExportNarrative} 
-        onBackToPortal={() => {
-          handleReset();
-        }} 
-      />
-    );
-  }
-
   const handleDataLoaded = (data: any) => {
     setError(null);
     
@@ -123,10 +96,37 @@ const App: React.FC = () => {
     setClinicalData(null);
     setQuestionnaireResult(null);
     setSelectedTemplate(null);
-    setUserRole(null);
+    setUserRole('coordinator'); // Fallback to default role
     setError(null);
     setCoordinatorTab('clingen');
   };
+
+  // If user is a patient, render ChatInterface in absolute full-screen mode directly at the root
+  if (userRole === 'patient') {
+    return (
+      <div className="w-screen h-screen overflow-hidden">
+        <ChatInterface 
+          role="patient" 
+          onQuestionnaireGenerated={(result, templateId) => {
+            setQuestionnaireResult(result);
+            setSelectedTemplate(templateId);
+          }}
+        />
+      </div>
+    );
+  }
+
+  // To preserve the gorgeous dark radial styling of ClinGen, render it as a full-page view without the white global navbar on top
+  if (userRole === 'coordinator' && coordinatorTab === 'clingen') {
+    return (
+      <ClinGenSynthesizer 
+        onExportNarrative={handleExportNarrative} 
+        onBackToPortal={() => {
+          handleReset();
+        }} 
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
@@ -135,7 +135,7 @@ const App: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center text-clinical-700">
             <Stethoscope size={24} className="mr-2" />
-            <span className="font-bold text-xl tracking-tight">Mayo Clinic Survey Intelligence</span>
+            <span className="font-bold text-xl tracking-tight">Clinical Survey Intelligence</span>
           </div>
 
           {/* Toggle navigation for coordinators between ClinGen Synthesizer and Tailor workspace */}
@@ -195,7 +195,7 @@ const App: React.FC = () => {
                 Clinical Survey Intelligence
               </h2>
               <p className="text-lg text-slate-600 leading-relaxed">
-                Welcome to the intelligent bridge between clinical narratives and REDCap. 
+                Welcome to the intelligent bridge between clinical narratives and Patient Surveys. 
                 Please select your portal to begin.
               </p>
             </div>
@@ -330,7 +330,7 @@ const App: React.FC = () => {
       
       <footer className="bg-white border-t border-slate-200 py-6 mt-auto shadow-inner">
         <div className="max-w-7xl mx-auto px-4 text-center text-[10px] uppercase tracking-widest font-bold text-slate-400">
-          <p>Confidential & Proprietary • Mayo Clinic Research Intelligence • HIPAA Compliant Environment</p>
+          <p>Confidential & Proprietary • Clinical Research Intelligence • HIPAA Compliant Environment</p>
         </div>
       </footer>
     </div>

@@ -108,7 +108,7 @@ export const QuestionnaireResult: React.FC<QuestionnaireResultProps> = ({ result
         setDeployedUri(data.gcs_uri);
         setDeployedSurveyId(data.survey_id);
         localStorage.setItem('deployed_survey_id', data.survey_id);
-        alert("Survey deployed successfully! The custom survey has been written to GCS and integrated with Gemini Enterprise.");
+        alert("Survey deployed successfully! The custom survey has been written to GCS and integrated with the local ADK assistant.");
       } else {
         alert(`Error deploying survey: ${data.message}`);
       }
@@ -174,29 +174,29 @@ export const QuestionnaireResult: React.FC<QuestionnaireResultProps> = ({ result
         </div>
       </div>
 
-      {/* Gemini Enterprise Chatbot Deployed Banner */}
-      {deployedLink && (
+      {/* Local ADK Chatbot Deployed Banner */}
+      {isDeployed && (
         <div className="bg-gradient-to-r from-clinical-50 to-clinical-100 border border-clinical-200 rounded-2xl p-6 mb-8 shadow-sm">
           <div className="flex flex-col gap-6">
             <div className="flex items-start justify-between">
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="bg-clinical-600 text-white text-[10px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full">
-                    Active Deployment Status
+                    Active Local Deployment
                   </span>
                   <span className="text-slate-500 text-xs font-mono">
                     {deployedUri}
                   </span>
                 </div>
                 <h3 className="text-xl font-bold text-slate-900">
-                  Custom survey successfully written to GCS & integrated with chatbot portals!
+                  Survey deployed
                 </h3>
                 <p className="text-slate-600 text-sm mt-1">
-                  The AI-driven clinical survey has been saved and is active. You can share either the Gemini Enterprise chatbot link or the Custom Web Portal chatbot link with the patient.
+                  Click below link to go to the chatbot survey assistant
                 </p>
               </div>
               <button
-                onClick={() => setDeployedLink(null)}
+                onClick={() => setIsDeployed(false)}
                 className="text-sm font-medium text-slate-500 hover:text-slate-700 p-1 rounded-full hover:bg-slate-200 transition-colors shrink-0"
                 title="Dismiss"
               >
@@ -204,67 +204,27 @@ export const QuestionnaireResult: React.FC<QuestionnaireResultProps> = ({ result
               </button>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4 border-t border-slate-200/60">
-              {/* Option 1: Gemini Enterprise Chatbot */}
-              <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
-                <div>
+            <div className="pt-4 border-t border-slate-200/60 flex flex-col gap-6">
+              {/* Single Deployed Link Option: Patient Survey Assistant */}
+              <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="bg-purple-100 text-purple-800 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded">
-                      Option A
+                    <span className="bg-clinical-100 text-clinical-800 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded">
+                      Active Portal
                     </span>
-                    <h4 className="text-sm font-bold text-slate-800">Gemini Enterprise Chatbot</h4>
+                    <h4 className="text-sm font-bold text-slate-800">Local Chatbot Assistant Portal</h4>
                   </div>
-                  <p className="text-xs text-slate-500 mb-3">
-                    Leverages Vertex AI Search & Conversation on GCS-stored questionnaire schema for enterprise clinical interaction.
+                  <p className="text-xs text-slate-500 mb-3 leading-relaxed">
+                    Direct access to our tailored patient-facing voice & text chatbot interface powered by local ADK runner.
                   </p>
-                  <div className="flex items-center bg-slate-50 border border-slate-200 rounded-lg p-2">
-                    <span className="text-xs font-mono text-slate-500 select-all truncate flex-1">
-                      {deployedLink}
-                    </span>
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(deployedLink);
-                        alert("Gemini Enterprise Chatbot Link copied!");
-                      }}
-                      className="ml-2 text-xs font-semibold text-clinical-600 hover:text-clinical-800 shrink-0"
-                    >
-                      Copy
-                    </button>
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <a
-                    href={deployedLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full flex items-center justify-center text-sm font-semibold text-white bg-clinical-600 hover:bg-clinical-700 py-2 rounded-lg transition-all shadow-sm"
-                  >
-                    <Sparkles size={14} className="mr-2" />
-                    Launch Enterprise Chat
-                  </a>
-                </div>
-              </div>
-
-              {/* Option 2: Custom Web Chatbot */}
-              <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="bg-blue-100 text-blue-800 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded">
-                      Option B
-                    </span>
-                    <h4 className="text-sm font-bold text-slate-800">Custom Web Chatbot Portal</h4>
-                  </div>
-                  <p className="text-xs text-slate-500 mb-3">
-                    Direct access to our tailored patient-facing voice & text chatbot interface constructed right here in this frontend.
-                  </p>
-                  <div className="flex items-center bg-slate-50 border border-slate-200 rounded-lg p-2">
+                  <div className="flex items-center bg-slate-50 border border-slate-200 rounded-lg p-2 max-w-xl">
                     <span className="text-xs font-mono text-slate-500 select-all truncate flex-1">
                       {customWebLink}
                     </span>
                     <button
                       onClick={() => {
                         navigator.clipboard.writeText(customWebLink);
-                        alert("Custom Web Chatbot Link copied!");
+                        alert("Chatbot Portal Link copied!");
                       }}
                       className="ml-2 text-xs font-semibold text-clinical-600 hover:text-clinical-800 shrink-0"
                     >
@@ -272,15 +232,15 @@ export const QuestionnaireResult: React.FC<QuestionnaireResultProps> = ({ result
                     </button>
                   </div>
                 </div>
-                <div className="mt-4">
+                <div className="shrink-0">
                   <a
                     href={customWebLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full flex items-center justify-center text-sm font-semibold text-clinical-700 bg-clinical-50 hover:bg-clinical-100 py-2 rounded-lg transition-all border border-clinical-200"
+                    className="inline-flex items-center justify-center text-sm font-semibold text-white bg-clinical-600 hover:bg-clinical-700 py-2.5 px-5 rounded-lg transition-all shadow-sm"
                   >
                     <User size={14} className="mr-2" />
-                    Launch Custom Chat
+                    Launch Chatbot Portal
                   </a>
                 </div>
               </div>
@@ -399,7 +359,7 @@ export const QuestionnaireResult: React.FC<QuestionnaireResultProps> = ({ result
                     Retained Questions
                   </h3>
                   <p className="text-slate-500 text-sm">
-                    These questions from the original templates have been verified as relevant and are grouped by REDCap form.
+                    These questions from the original templates have been verified as relevant and are grouped by clinical form.
                   </p>
                 </div>
                 {totalRetained > 0 ? (
@@ -598,7 +558,7 @@ export const QuestionnaireResult: React.FC<QuestionnaireResultProps> = ({ result
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
               <h3 className="text-sm font-semibold text-slate-800 uppercase tracking-wider mb-4 flex items-center">
                 <Database size={16} className="mr-2 text-clinical-600" />
-                REDCap Baseline Context
+                Clinical Baseline Context
               </h3>
               <pre className="text-xs bg-slate-50 border border-slate-100 rounded-lg p-4 font-mono text-slate-600 overflow-auto max-h-96 custom-scrollbar leading-relaxed">
                 {result.baseline_context}

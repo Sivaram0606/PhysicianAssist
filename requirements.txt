@@ -1,0 +1,35 @@
+# ==============================================================================
+# Unified Clinical Research Monorepo - Master Python Requirements
+# Unifies dependencies across ClinGen, Survey Tailor, and Patient Survey Assistant.
+# ==============================================================================
+
+# === Core Web Platform & ASGI Server ===
+fastapi>=0.115.0
+uvicorn>=0.30.6
+pydantic>=2.0
+python-multipart
+
+# === Clinical Data Wrangling, PDF Parse & Scraping ===
+pandas
+PyPDF2>=3.0.1
+beautifulsoup4
+tqdm
+
+# === Vertex AI & Google GenAI SDK Client Libraries ===
+google-genai
+google-cloud-discoveryengine
+vertexai
+google-cloud-aiplatform[evaluation]
+
+# === Reasoning Engine, Agent Runtimes & Google ADK ===
+google-adk[extensions,agent-identity,a2a]>=2.3.0
+
+# === Cloud Storage & GCS Integration ===
+google-cloud-storage
+
+# === Network, Async, Robustness & Utility Helpers ===
+aiohttp
+tenacity
+loguru
+fastapi-cache2
+orjson

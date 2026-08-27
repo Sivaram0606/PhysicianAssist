@@ -10,7 +10,7 @@ interface AvailableFormsProps {
   onQuestionnaireGenerated: (result: TailoredQuestionnaireResult, templateId: string) => void;
 }
 
-// Sample fallback list when connection to REDCap fails
+// Sample fallback list when connection to clinical database fails
 const MOCK_DATA = [
   {"arm_num":1,"unique_event_name":"baseline_arm_1","form":"registration_log"},
   {"arm_num":1,"unique_event_name":"baseline_arm_1","form":"consent"},
@@ -38,7 +38,7 @@ export const AvailableForms: React.FC<AvailableFormsProps> = ({
     const fetchForms = async () => {
       try {
         const apiUrl = import.meta.env.VITE_API_URL || '';
-        const response = await fetch(`${apiUrl}/api/redcap-proxy`, {
+        const response = await fetch(`${apiUrl}/api/forms-proxy`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

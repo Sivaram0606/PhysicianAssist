@@ -1,0 +1,70 @@
+# Google Cloud Build Pipeline Configuration
+# Automates:
+# - Backend: Dockerizes, pushes to GCS Artifact Registry ('clingen' repo), and deploys to Google Cloud Run (Port 8000)
+# - Frontend: Installs and builds static React assets with the Cloud Run API URL, and deploys to Google App Engine (GAE)
+
+steps:
+  # === BACKEND PIPELINE (Google Cloud Run) ===
+  # 1. Build the Backend Docker Image (Tagging in the newly created 'clingen' repository)
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/clingen/clingen-backend:$BUILD_ID',
+      '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/clingen/clingen-backend:latest',
+      '-f', 'services/clingen_synth/Dockerfile',
+      '.'
+    ]
+    id: 'build-backend'
+
+  # 2. Push Backend Image (Build ID Tag) to GCS Artifact Registry ('clingen' repository)
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/clingen/clingen-backend:$BUILD_ID']
+    id: 'push-backend-commit'
+
+  # 3. Push Backend Image (Latest Tag) to GCS Artifact Registry ('clingen' repository)
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/clingen/clingen-backend:latest']
+    id: 'push-backend-latest'
+
+  # 4. Deploy the Backend to Google Cloud Run on Port 8000
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args: [
+      'run', 'deploy', 'clingen-backend',
+      '--image', 'us-central1-docker.pkg.dev/$PROJECT_ID/clingen/clingen-backend:$BUILD_ID',
+      '--region', 'us-central1',
+      '--platform', 'managed',
+      '--allow-unauthenticated',
+      '--service-account', 'anaphor@pocprojects-502518.iam.gserviceaccount.com',
+      '--set-env-vars', 'GOOGLE_CLOUD_PROJECT=pocprojects-502518,GOOGLE_CLOUD_LOCATION=global',
+      '--port', '8000'
+    ]
+    id: 'deploy-backend'
+
+  # === FRONTEND PIPELINE (Google App Engine) ===
+  # 5. Install Node Dependencies and Build Static React UI with Production Cloud Run API URL
+  - name: 'node:24-alpine'
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+        cd frontend
+        npm install --silent
+        VITE_API_URL=https://clingen-backend-256442359139.us-central1.run.app npm run build
+    id: 'build-frontend-assets'
+
+  # 6. Deploy compiled frontend assets directly to GAE Standard Environment
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args: [
+      'app', 'deploy', 'frontend/app.yaml',
+      '--project=$PROJECT_ID',
+      '--quiet'
+    ]
+    id: 'deploy-frontend'
+
+images:
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/clingen/clingen-backend:$BUILD_ID'
+
+options:
+  logging: CLOUD_LOGGING_ONLY

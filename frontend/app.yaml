@@ -1,7 +1,7 @@
 # Google App Engine Standard Environment Configuration
 # Deploys the compiled React (Vite) single-page application as high-performance static files
 
-service: clinical-survey-intelligence-frontend
+service: clingen-frontend
 runtime: python312
 
 handlers:

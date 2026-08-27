@@ -16,10 +16,10 @@ export default defineConfig(({ mode }) => {
           '/api/metadata': 'http://localhost:8001',
           '/api/patient': 'http://localhost:8001',
 
-          // 2. Questionnaire Tailoring Suite Backend (running on Port 8000)
-          '/api': 'http://localhost:8000',
-          '/api-proxy': 'http://localhost:8000',
-          '/ws-proxy': {target: 'ws://localhost:8000', ws: true},
+          // 2. Questionnaire Tailoring Suite Backend (running on Port 8001)
+          '/api': 'http://localhost:8001',
+          '/api-proxy': 'http://localhost:8001',
+          '/ws-proxy': {target: 'ws://localhost:8001', ws: true},
         },
       },
       plugins: react(),

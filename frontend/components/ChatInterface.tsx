@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Send, User, Bot, Loader2, Mic, Paperclip, MicOff, Sparkles, Database, Plus, Stethoscope, ShieldCheck, Menu, SquarePen, ArrowUp, HelpCircle, Settings, MessageSquare, History } from 'lucide-react';
 import { TailoredQuestionnaireResult } from '../types';
 import { useVoiceToText } from '../hooks/useVoiceToText';
+import ReactMarkdown from 'react-markdown';
+import rehypeRaw from 'rehype-raw';
 
 // Custom SVG for the Gemini Sparkle Logo
 const GeminiLogo = () => (
@@ -22,16 +24,25 @@ interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
-  type?: 'text' | 'form_recommendation' | 'question_tailoring' | 'survey_question' | 'rich_gecx_tool';
+  type?: 'text' | 'form_recommendation' | 'question_tailoring' | 'survey_question' | 'rich_assistant_tool';
   data?: any;
 }
 
 interface ChatInterfaceProps {
   role: 'coordinator' | 'patient';
   onQuestionnaireGenerated?: (result: TailoredQuestionnaireResult, templateId: string) => void;
+  isEmbedded?: boolean;
+  embeddedMrn?: string;
+  embeddedSurveyId?: string;
 }
 
-export const ChatInterface: React.FC<ChatInterfaceProps> = ({ role, onQuestionnaireGenerated }) => {
+export const ChatInterface: React.FC<ChatInterfaceProps> = ({ 
+  role, 
+  onQuestionnaireGenerated,
+  isEmbedded = false,
+  embeddedMrn,
+  embeddedSurveyId
+}) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -47,7 +58,17 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ role, onQuestionna
   const [urlSurveyId, setUrlSurveyId] = useState('');
 
   // Sidebar Open State
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(!isEmbedded);
+
+  // Sync embedded props
+  useEffect(() => {
+    if (embeddedMrn) {
+      setPatientMrn(embeddedMrn);
+    }
+    if (embeddedSurveyId) {
+      setUrlSurveyId(embeddedSurveyId);
+    }
+  }, [embeddedMrn, embeddedSurveyId]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -174,7 +195,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ role, onQuestionna
     try {
       const apiUrl = import.meta.env.VITE_API_URL || '';
       
-      // Determine endpoint: Patient GECX Chat uses mediated /api/run-session, Coordinator uses /api/chat
+      // Determine endpoint: Patient Chat Assistant uses mediated /api/run-session, Coordinator uses /api/chat
       const endpoint = role === 'patient' ? `${apiUrl}/api/run-session` : `${apiUrl}/api/chat`;
       
       const payloadBody = role === 'patient' 
@@ -279,7 +300,44 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ role, onQuestionna
     return res;
   };
 
-  const renderGecxRichTools = (msg: Message) => {
+  const parseBulletedChoices = (text: string): string[] => {
+    if (!text) return [];
+    const lines = text.split('\n');
+    const choices: string[] = [];
+    lines.forEach(line => {
+      const trimmed = line.trim();
+      const bulletMatch = trimmed.match(/^[\*\-]\s+(.+)$/);
+      if (bulletMatch) {
+        choices.push(bulletMatch[1].trim());
+      } else {
+        const numberMatch = trimmed.match(/^\d+[\.\)]\s+(.+)$/);
+        if (numberMatch) {
+          choices.push(numberMatch[1].trim());
+        }
+      }
+    });
+    return choices;
+  };
+
+  const cleanMessageContent = (text: string, parsedChoices: string[]): string => {
+    if (!text || parsedChoices.length === 0) return text;
+    const lines = text.split('\n');
+    const cleanedLines = lines.filter(line => {
+      const trimmed = line.trim();
+      const bulletMatch = trimmed.match(/^[\*\-]\s+(.+)$/);
+      if (bulletMatch && parsedChoices.includes(bulletMatch[1].trim())) {
+        return false;
+      }
+      const numberMatch = trimmed.match(/^\d+[\.\)]\s+(.+)$/);
+      if (numberMatch && parsedChoices.includes(numberMatch[1].trim())) {
+        return false;
+      }
+      return true;
+    });
+    return cleanedLines.join('\n').trim();
+  };
+
+  const renderAssistantRichTools = (msg: Message) => {
     const data = msg.data;
     if (!data) return null;
 
@@ -287,7 +345,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ role, onQuestionna
     const payload = data.payload || data.response?.payload || data.data?.payload;
     const chunks = data.chunks || data.response?.chunks || data.data?.chunks;
 
-    // Aggregate and deduplicate options: Check both the GECX primary outputs[0].payload AND diagnostic messages chunks.
+    // Aggregate and deduplicate options: Check both the assistant primary outputs[0].payload AND diagnostic messages chunks.
     let actions: any[] = [];
     let questionText = "";
     let isDateTime = false;
@@ -308,7 +366,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ role, onQuestionna
         const chunkPayload = chunk.payload || toolCall?.args?.payload || {};
 
         if (chunkPayload.question && !questionText) questionText = chunkPayload.question;
-        if (chunkPayload.actions && actions.length === 0) actions = chunkPayload.actions;
+        if (chunkPayload.actions && actions.length === 0) actions = actions;
 
         if (toolCall) {
           const displayName = toolCall.displayName || toolCall.name;
@@ -364,7 +422,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ role, onQuestionna
       );
     }
 
-    // Render DateTime Picker if GECX triggered the toolCall
+    // Render DateTime Picker if assistant triggered the toolCall
     if (isDateTime) {
       elements.push(
         <div key="rich-datepicker" className="mt-4 space-y-3 pt-4 border-t border-slate-100 animate-fadeIn">
@@ -471,7 +529,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ role, onQuestionna
             </button>
             <div className="flex items-center gap-2 cursor-pointer select-none">
               <GeminiLogo />
-              <span className="text-lg font-bold tracking-tight text-slate-800">Mayo Survey Assistant</span>
+              <span className="text-lg font-bold tracking-tight text-slate-800">Intelligent Survey Assistant</span>
             </div>
           </div>
 
@@ -521,7 +579,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ role, onQuestionna
                   <div className="text-clinical-600 font-bold mb-1.5 group-hover:text-indigo-600 flex items-center gap-1.5">
                     <HelpCircle size={16} /> Patient Information
                   </div>
-                  <p className="text-slate-500 text-xs leading-relaxed">Learn how these tailored REDCap templates support clinical monitoring and safety.</p>
+                  <p className="text-slate-500 text-xs leading-relaxed">Learn how these tailored Intelligent templates support clinical monitoring and safety.</p>
                 </button>
               </div>
             </div>
@@ -549,17 +607,51 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ role, onQuestionna
                         {/* Bubble content */}
                         <div className="flex flex-col gap-1">
                           <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider px-1">
-                            {isUser ? 'You' : 'Mayo Survey Assistant'}
+                            {isUser ? 'You' : 'Intelligent Survey Assistant'}
                           </span>
-                          <div className={`p-4 rounded-3xl text-[15px] leading-relaxed shadow-sm ${
+                          <div className={`p-4 rounded-3xl text-[15px] leading-relaxed shadow-sm prose prose-sm max-w-none ${
                             isUser 
                               ? 'bg-[#E3EBF8] text-slate-800 border border-[#D0DEF2] font-semibold rounded-tr-none' 
-                              : 'bg-white text-slate-800 font-normal border border-slate-150 rounded-tl-none'
+                              : 'bg-white text-slate-800 font-normal border border-slate-150 rounded-tl-none font-sans'
                           }`}>
-                            {msg.content}
+                            <ReactMarkdown rehypePlugins={[rehypeRaw]}>
+                              {(() => {
+                                if (role === 'patient' && !isUser && msg.type !== 'survey_question' && msg.type !== 'rich_assistant_tool') {
+                                  const parsedChoices = parseBulletedChoices(msg.content);
+                                  return cleanMessageContent(msg.content, parsedChoices);
+                                }
+                                return msg.content;
+                              })()}
+                            </ReactMarkdown>
                             
-                            {/* Render GECX rich widgets (chips/calendars) inline inside bot bubbles */}
-                            {renderGecxRichTools(msg)}
+                            {/* Render assistant rich widgets (chips/calendars) inline inside bot bubbles */}
+                            {renderAssistantRichTools(msg)}
+
+                            {/* Dynamically parsed bullet choices fallback for local chatbot assistant */}
+                            {role === 'patient' && !isUser && msg.type !== 'survey_question' && msg.type !== 'rich_assistant_tool' && (
+                              (() => {
+                                const parsedChoices = parseBulletedChoices(msg.content);
+                                if (parsedChoices.length > 0) {
+                                  return (
+                                    <div className="mt-4 space-y-2 pt-4 border-t border-slate-100 animate-fadeIn">
+                                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Select an option:</p>
+                                      <div className="flex flex-wrap gap-2">
+                                        {parsedChoices.map((opt) => (
+                                          <button
+                                            key={opt}
+                                            onClick={() => handleSend(opt)}
+                                            className="px-4 py-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 hover:border-indigo-500 rounded-full text-xs font-semibold transition-all shadow-sm active:scale-[0.98]"
+                                          >
+                                            {opt}
+                                          </button>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  );
+                                }
+                                return null;
+                              })()
+                            )}
 
                             {/* Legacy Integrated Components fallback */}
                             {msg.type === 'form_recommendation' && msg.data && (
@@ -708,7 +800,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ role, onQuestionna
                       handleSend();
                     }
                   }}
-                  placeholder="Ask Mayo Survey Assistant"
+                  placeholder="Ask Intelligent Survey Assistant"
                   className="w-full bg-transparent border-none focus:outline-none focus:ring-0 text-[15px] py-1 text-slate-800 placeholder-slate-500 font-sans font-medium"
                 />
               </div>
@@ -740,7 +832,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ role, onQuestionna
               </div>
             </div>
             <p className="text-[9px] text-slate-400 mt-3.5 text-center font-black tracking-widest uppercase select-none">
-              Confidential • HIPAA Sandbox Connected • Powered by Google Gemini & Mayo Clinic
+              Confidential • HIPAA Sandbox Connected • Powered by Google Gemini & Clinical Research Intelligence
             </p>
           </div>
         </div>

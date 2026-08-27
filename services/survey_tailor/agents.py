@@ -20,24 +20,24 @@ from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_excep
 class VertexGemini(Gemini):
     @cached_property
     def api_client(self) -> Client:
-        # Configuration for Vertex AI with ADC and Mayo Project
+        # Configuration for Vertex AI with ADC
         return Client(vertexai=True, project=GOOGLE_CLOUD_PROJECT, location="global")
 
 # Define Structured Responses
 class TailoredQuestion(BaseModel):
-    field_name: str = Field(description="The underlying REDCap variable/field name (e.g. shaq_1 or compass31_q1).")
-    question_text: str = Field(description="The actual clinical question text as seen on the PDF.")
-    choices: list[str] = Field(description="The list of selectable options extracted directly from the template PDF, e.g. ['Yes', 'No'] or ['Without ANY difficulty', 'With SOME difficulty']. If the question is a free-text field, keep this list empty.")
+    field_name: str = Field(description="The underlying clinical variable/field name (e.g. shaq_1 or compass31_q1).")
+    question_text: str = Field(description="The actual clinical question text as seen on the form template.")
+    choices: list[str] = Field(description="The list of selectable options extracted directly from the template, e.g. ['Yes', 'No'] or ['Without ANY difficulty', 'With SOME difficulty']. If the question is a free-text field, keep this list empty.")
 
 class FormTailoredQuestions(BaseModel):
-    form_name: str = Field(description="Exact snake_case name of the REDCap form.")
+    form_name: str = Field(description="Exact snake_case name of the clinical form.")
     retained_questions: list[TailoredQuestion] = Field(description="Questions from the template kept because they are relevant.")
     dropped_questions: list[TailoredQuestion] = Field(description="Questions from the template removed because they don't apply to the patient.")
     reasons_for_dropping: list[str] = Field(description="Brief rationales pointing out why specific questions were dropped, aligned 1-to-1.")
     additional_questions: list[TailoredQuestion] = Field(description="Brand-new crucial questions missing from the template.")
 
 class RecommendedForm(BaseModel):
-    form_name: str = Field(description="Name of the REDCap form.")
+    form_name: str = Field(description="Name of the clinical form.")
     rationale: str = Field(description="Why this form is relevant to the patient's narrative.")
     priority: str = Field(description="High, Medium, or Low priority.")
 
@@ -65,13 +65,7 @@ QUESTIONNAIRE_TAILOR_PROMPT_TEMPLATE = load_prompt("questionnaire_tailor_prompt.
 FORM_RECOMMENDATION_PROMPT_TEMPLATE = load_prompt("form_recommendation_prompt.md")
 
 # Local data sources pointing to central /data directory
-DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "data"))
-
-async def export_pdf_from_redcap(form_name: str) -> bytes:
-    """Fetch the blank PDF clinical instrument from local dataset."""
-    pdf_path = os.path.join(DATA_DIR, "sample_oncology.pdf")
-    with open(pdf_path, "rb") as f:
-        return f.read()
+DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "data"))
 
 async def get_preprocessed_metadata():
     """Fetch and preprocess questionnaire metadata from local JSON dataset."""
@@ -268,10 +262,19 @@ async def run_clinical_pipeline(patient_narrative: str, template_ids: List[str],
         except Exception as e:
             print(f"Warning: Could not fetch baseline: {e}")
 
-    # 3. Define helper to execute a single sub-agent concurrently (Multimodal PDF Understanding)
+    # 3. Define helper to execute a single sub-agent concurrently (Structured Metadata-Driven Tailoring)
     async def execute_sub_agent(form_name: str):
-        # Fetch blank PDF clinical instrument directly from REDCap API
-        pdf_bytes = await export_pdf_from_redcap(form_name)
+        # Fetch blank clinical instrument fields directly from local metadata.json
+        form_df = await get_form_metadata(form_name)
+        fields_list = []
+        for _, row in form_df.iterrows():
+            fields_list.append({
+                "field_name": row.get("field_name"),
+                "field_label": row.get("cleaned_field_label") or row.get("field_label") or "",
+                "field_type": row.get("field_type") or "",
+                "choices": row.get("select_choices_or_calculations") or ""
+            })
+        form_fields_json = json.dumps(fields_list, indent=2)
         
         agent = Agent(
             name=f"questionnaire_agent_{form_name}",
@@ -291,7 +294,7 @@ async def run_clinical_pipeline(patient_narrative: str, template_ids: List[str],
 
         prompt_parts = [
             types.Part(text=prompt_text),
-            types.Part.from_bytes(data=pdf_bytes, mime_type="application/pdf")
+            types.Part(text=f"Template Form Fields (Structured JSON) for Clinical Instrument '{form_name}':\n{form_fields_json}")
         ]
         
         result_data = await run_agent_workflow(agent, prompt_parts)
@@ -323,14 +326,14 @@ async def run_clinical_pipeline(patient_narrative: str, template_ids: List[str],
     return combined_result
 
 async def recommend_forms_for_narrative(patient_narrative: str, treatment_plan: str) -> list:
-    """Recommends REDCap forms based on deep metadata analysis using decoupled templates."""
+    """Recommends clinical forms based on deep metadata analysis using decoupled templates."""
     # Fetch Metadata locally
-    redcap_questionaire_metadata_df = await get_preprocessed_metadata()
+    survey_questionnaire_metadata_df = await get_preprocessed_metadata()
     
     final_str=""
     current_form_name=""
     current_section_name=""
-    for _, row in redcap_questionaire_metadata_df.iterrows():
+    for _, row in survey_questionnaire_metadata_df.iterrows():
         if row["form_name"] != current_form_name and row["form_name"]!="":
             current_form_name=row["form_name"]
             final_str += f"\n## **{row['form_name']}** \n"

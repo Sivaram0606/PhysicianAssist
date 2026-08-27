@@ -10,7 +10,7 @@ monorepo_root = os.path.abspath(os.path.join(current_dir, "..", ".."))
 if monorepo_root not in sys.path:
     sys.path.insert(0, monorepo_root)
 
-from app_config.settings import SERVICE_ACCOUNT
+from settings import SERVICE_ACCOUNT
 from agent import root_agent
 from config import config
 

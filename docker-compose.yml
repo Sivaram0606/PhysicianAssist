@@ -1,7 +1,7 @@
 services:
   backend:
     build:
-      context: ../services/survey_tailor/app
+      context: .
       dockerfile: Dockerfile
     container_name: clinic_backend
     ports:
@@ -11,14 +11,15 @@ services:
       - PORT=8000
       - GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json
       - GOOGLE_CLOUD_PROJECT=pocprojects-502518
-    # Mount gcloud credentials path for Application Default Credentials (ADC)
+    # Mount local directories for hot-reloading and gcloud credentials path for ADC
     volumes:
-      - /tmp/tmp.8KhO1e2zs1/application_default_credentials.json:/root/.config/gcloud/application_default_credentials.json:ro
+      - .:/app
+      - ~/.config/gcloud/application_default_credentials.json:/root/.config/gcloud/application_default_credentials.json:ro
     restart: always
 
   frontend:
     build:
-      context: ../frontend
+      context: ./frontend
       dockerfile: Dockerfile
       args:
         - BACKEND_SCHEME=http
@@ -29,3 +30,4 @@ services:
     depends_on:
       - backend
     restart: always
+

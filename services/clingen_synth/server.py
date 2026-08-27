@@ -5,17 +5,15 @@ import json
 import asyncio
 import PyPDF2
 from typing import List
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 import vertexai
-from vertexai.generative_models import GenerativeModel
 from google.cloud import discoveryengine_v1 as discoveryengine
 import pandas as pd 
 from vertexai.preview.evaluation import EvalTask 
 from vertexai.preview.evaluation import MetricPromptTemplateExamples
+from google import genai
+from google.genai import types
 
 # Inject the monorepo root path into sys.path to allow root configuration imports
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -24,7 +22,7 @@ if monorepo_root not in sys.path:
     sys.path.insert(0, monorepo_root)
 
 # Pull configuration properties from the centralized settings module
-from app_config.settings import (
+from settings import (
     CLINGEN_PROJECT_ID as PROJECT_ID,
     CLINGEN_LOCATION as LOCATION,
     CLINGEN_MODEL
@@ -40,9 +38,7 @@ EVALUATION_METRICS: List[str] = [
             MetricPromptTemplateExamples.Pointwise.TEXT_QUALITY
         ]
 
-
 grounding_client = discoveryengine.GroundedGenerationServiceClient()
-
 
 grounding_config_path = grounding_client.grounding_config_path(
     project=PROJECT_ID,
@@ -51,24 +47,24 @@ grounding_config_path = grounding_client.grounding_config_path(
 )
 
 try:
+    # Initialize both Vertex AI (for legacy evaluation) and the new google-genai Client (for generation calls)
     vertexai.init(project=PROJECT_ID, location=LOCATION)
-    gemini_model = GenerativeModel(CLINGEN_MODEL)
+    client = genai.Client(vertexai=True, project=PROJECT_ID, location=LOCATION)
     USE_REAL_LLM = True
-    print(f"Vertex AI initialized with project {PROJECT_ID}")
+    print(f"Vertex AI and Google GenAI SDK initialized with project {PROJECT_ID}")
 except Exception as e:
-    print(f"Warning: Failed to initialize Vertex AI: {e}. Falling back to mock mode.")
+    print(f"Warning: Failed to initialize Google GenAI or Vertex AI: {e}. Narrative generation is disabled.")
     USE_REAL_LLM = False
-    gemini_model = None
+    client = None
 
-
-data_dir = os.path.abspath(os.path.join(current_dir, "..", "..", "..", "data"))
+data_dir = os.path.abspath(os.path.join(current_dir, "..", "..", "data"))
 project_root = os.path.dirname(current_dir)
 sys.path.insert(0, project_root)
 
 STANDALONE_MODE = True
 
 class GenerationConfig(BaseModel):
-    llm_version: str = "gemini-2.5-flash"
+    llm_version: str = "gemini-3.5-flash"
     max_output_tokens: int = 100
     temperature: float = 0.1
     top_p: float = 1.0
@@ -94,16 +90,7 @@ class NarrativeResponse(BaseModel):
     sections: List[dict]
 
 
-app = FastAPI(title="PhenoFlow Demo API")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
+clingen_router = APIRouter()
 
 def load_dummy_patient_record(*args, **kwargs):
     """Mocks get_preprocessed_patient_record"""
@@ -141,69 +128,6 @@ def load_dummy_metadata(*args, **kwargs):
     except Exception as e:
         print(f"Error loading dummy metadata: {e}")
         return []
-
-async def mock_call_gemini(section, target_patient_mrn, preprocessed_data, **kwargs):
-    """Mocks the Vertex AI call"""
-    await asyncio.sleep(1.5) # Simulate API latency
-    
-    # Extract some dummy data points to make the citations look real
-    # We know the dummy data has 'symptom_onset', 'pain_severity' etc.
-    # But since preprocessed_data is a flat string in this mock context, we'll just simulate it generically 
-    # based on the section name to keep it robust.
-    
-    SECTION_CONTENT = {
-        "History of Present Illness": f"""**History of Present Illness**:
-**Chief Complaint**: The patient presents today with *"{preprocessed_data.get('chief_complaint', 'headache')}"* <span className="citation" data-field="chief_complaint">[1]</span>.
-
-They report significant discomfort starting from *2023-10-15* <span className="citation" data-field="symptom_onset">[2]</span>. The patient rates their pain as **6/10** <span className="citation" data-field="pain_severity">[3]</span>.
-
----
-**Sources:**
-<span className="source-ref" data-field="chief_complaint">[1] Chief Complaint</span>
-<span className="source-ref" data-field="symptom_onset">[2] Symptom Onset</span>
-<span className="source-ref" data-field="pain_severity">[3] Pain Severity</span>""",
-
-        "Review of Systems": f"""**Review of Systems**:
-Patient validates positive for:
-- **Headache** <span className="citation" data-field="review_systems">[4]</span>
-- **Nausea** <span className="citation" data-field="review_systems">[4]</span>
-- **Vision Changes** <span className="citation" data-field="review_systems">[4]</span>
-
----
-**Sources:**
-<span className="source-ref" data-field="review_systems">[4] Review of Systems</span>""",
-
-        "Social History": f"""**Social History**:
-Patient is a **Never Smoker** <span className="citation" data-field="social_history_smoke">[9]</span> and drinks alcohol **Occasionally** <span className="citation" data-field="social_history_alcohol">[10]</span>.
-Occupation: **Software Engineer** <span className="citation" data-field="occupation">[11]</span>.
-
----
-**Sources:**
-<span className="source-ref" data-field="social_history_smoke">[9] Smoking Status</span>
-<span className="source-ref" data-field="social_history_alcohol">[10] Alcohol Use</span>
-<span className="source-ref" data-field="occupation">[11] Occupation</span>""",
-        
-        "Medical History": f"""**Medical History**:
-History is significant for **Hypertension** <span className="citation" data-field="medical_history">[5]</span>.
-Past surgeries include **Appendectomy (2010)** <span className="citation" data-field="surgical_history">[6]</span>.
-
-**Medications & Allergies**:
-Current medications:
-- **Ibuprofen 400mg as needed, Lisinopril 10mg daily** <span className="citation" data-field="medications">[7]</span>
-Allergies:
-- **Penicillin (Rash)** <span className="citation" data-field="allergies">[8]</span>
-
----
-**Sources:**
-<span className="source-ref" data-field="medical_history">[5] Medical History</span>
-<span className="source-ref" data-field="surgical_history">[6] Surgical History</span>
-<span className="source-ref" data-field="medications">[7] Medications</span>
-<span className="source-ref" data-field="allergies">[8] Allergies</span>"""
-    }
-
-    return SECTION_CONTENT.get(section.section_name, f"**{section.section_name}**\nContent not generated for this section.")
-
-
 
 
 async def run_live_evaluation(patient_record: dict, generated_sections: list):
@@ -275,39 +199,44 @@ def prepare_grounding_facts(patient_record: dict):
 
 async def call_gemini_vertex(section_name: str, patient_record: dict):
     """
-    Calls Gemini to geneeare the nrrative
+    Calls Gemini to generate the narrative using google-genai Client
     """
 
-    if not gemini_model:
-        return "Error: Gemini model not initialized."
+    if not client:
+        return "Error: Gemini client not initialized."
 
     # 1. GENERATE NARRATIVE
     prompt = f"""
     You are an expert clinical scribe writing for a specialized multidisciplinary clinic. 
-    Your task is to draft the '{section_name}' section of a high-fidelity clinical note.
+    Your task is to draft a highly detailed, comprehensive, and clinically elaborate '{section_name}' section of a high-fidelity clinical note. 
+
+    The current draft is too short and crisp. You must expand this content dramatically, weaving in all available context, secondary indicators, historical symptoms, and clinical interpretations to produce an exhaustive, multi-paragraph, and professionally dense clinical narrative.
 
     **Source Data (JSON):**
     {json.dumps(patient_record, indent=2)}
 
-    **Style Guidelines for a 'Clinically Full' Narrative:**
-    - **Narrative Flow:** Use bullet points to weave data into professional, complex sentences.
-    - **Medical Terminology:** Use precise clinical language (e.g., 'reports an inability to tolerate oral intake' instead of 'can't eat'; 'significant for' instead of 'has').
-    - **Professional Tone:** Use formal descriptors such as 'endorses,' 'denies,' 'significant for,' 'consistent with,' and 'at the time of evaluation.'
-    - **Detail Density:** If a score is provided (e.g., PROMIS, MIDAS), interpret its clinical significance in the narrative (e.g., 'indicating severe disability').
-    - **Transitioning:** Connect symptoms to their functional impact or duration as provided in the data.
+    **Style Guidelines for a 'Clinically Elaborate' Narrative:**
+    - **Strict Clinical Grounding & Hallucination Prevention:** Every single symptom, historical timeline milestone, surgery, medication, and clinical diagnosis you generate MUST be strictly grounded in and supported by the provided Source Data (JSON). Never invent, assume, or speculate about facts, dates, symptoms, or scores that are not explicitly present in the patient record. Speculation or ungrounded details are strictly prohibited.
+    - **Exhaustive Data Inclusion:** Systematically examine the source JSON. Weave *every single piece* of relevant clinical data (such as specific medications, dosages, timelines, prior surgeries, qualitative answers, and individual score components) into the narrative prose. Never summarize or leave any detail out.
+    - **Elaborate Clinical Prose:** Do not use short, clipped sentences. Construct complex, medically dense, and flowing sentences. Describe symptoms along with their specific timeline, severity patterns, aggravating factors, and functional limitations on the patient's daily life.
+    - **Medical Terminology & Descriptors:** Maintain an exceptionally formal clinical tone. Use professional verbs such as 'endorses,' 'denies,' 'significant for,' 'consistent with,' 'at the time of evaluation,' 'exacerbates,' and 'ameliorates.' Refer to symptoms using formal clinical nomenclature (e.g., 'oral hypomotility and dysphagia' instead of 'difficulty swallowing').
+    - **Deep Score Interpretation:** If clinical scores or indices are present in the source data (e.g., PROMIS-29 T-scores, MIDAS scores, PAGI-QOL, or Beighton score), do not just state the numbers. Thoroughly analyze what each score signifies, explain its severity classification (e.g., 'indicating severe fatigue and severe physical disability'), and detail how it impacts the patient's daily baseline functional capacity.
+    - **Functional Synthesizing:** Explicitly connect the patient's symptoms (e.g., headaches, joint pain) to their secondary systemic, cognitive, or physical outcomes as described in the medical history.
 
     **Section-Specific Focus:**
-    Write only the content for '{section_name}'. Avoid introductory phrases like 'The patient says...' or 'Based on the data...'. Start directly with the clinical description.
+    Write only the content for the '{section_name}' section. Avoid generic, brief introductory sentences (such as 'The patient is a...') or analytical lead-ins (like 'According to the provided data...'). Begin directly with the dense, elaborate clinical description of the patient's state.
     """
 
     try:
-        response = await asyncio.to_thread(gemini_model.generate_content, prompt)
+        response = await client.aio.models.generate_content(
+            model=CLINGEN_MODEL,
+            contents=prompt
+        )
         narrative = response.text
 
         # 2. PREPARE FACTS
         facts = prepare_grounding_facts(patient_record)
         
-
         fact_lookup = {}
         for i, f in enumerate(facts):
             fname = f.attributes['field_name']
@@ -353,15 +282,14 @@ async def call_gemini_vertex(section_name: str, patient_record: dict):
             4. If no field matches, respond with 'unknown'.
             """
             
-            refiner_res = await asyncio.to_thread(gemini_model.generate_content, refine_prompt)
+            refiner_res = await client.aio.models.generate_content(
+                model=CLINGEN_MODEL,
+                contents=refine_prompt
+            )
             best_field = refiner_res.text.strip()
-
-            # print(f"CLAIM: \"{claim_text}\"", flush=True)
-            # print(f"  🎯 REFINER DECISION: Mapping to -> '{best_field}'", flush=True)
 
             # Avoid mapping to generic IDs unless absolutely necessary
             if best_field == "unknown" or best_field not in patient_record:
-                # print(f"  ⚠️ Warning: No solid match found for '{claim_text}'", flush=True)
                 continue
 
             # INJECT TAG
@@ -372,9 +300,9 @@ async def call_gemini_vertex(section_name: str, patient_record: dict):
 
     except Exception as e:
         print(f"CRITICAL ERROR in {section_name}: {e}", flush=True)
-        return narrative
+        return f"**{section_name}**\n\nClinical narrative section could not be generated: Clinical Intelligence Model (Gemini 3.5) was unreachable."
 
-@app.get("/api/patients", response_model=List[PatientSummary])
+@clingen_router.get("/api/patients", response_model=List[PatientSummary])
 def get_patients():
     """Returns list of patients from the dummy data"""
     try:
@@ -399,12 +327,18 @@ def get_patients():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/api/patient/{mrn}/narrative")
+@clingen_router.post("/api/patient/{mrn}/narrative")
 async def generate_patient_narrative(mrn: str, request: PatientDataRequest):
     """
     Generates narrative based on the provided form data.
     """
     
+    if not USE_REAL_LLM:
+        raise HTTPException(
+            status_code=500,
+            detail="Narrative generation failed: Clinical Intelligence Model (Gemini 3.5) could not be initialized."
+        )
+
     try:
         # Define the logic to run inside or outside the patch context
         async def run_logic():
@@ -421,36 +355,16 @@ async def generate_patient_narrative(mrn: str, request: PatientDataRequest):
                 "Systemic Hypermobility",
                 "Disability",
                 "Infectious Disease History"
-
             ]
             
             results = []
             tasks = []
             for sec_name in sections_to_generate:
-                if USE_REAL_LLM:
-                    print(f"Generating {sec_name} using Vertex AI with provided data...")
-                    # narrative = await call_gemini_vertex(sec_name, patient_data)
-                    tasks.append(call_gemini_vertex(sec_name, patient_data))
-                else:
-                    # Fallback to mock (still uses the provided data for "mock" grounding if we updated mock_call)
-                    dummy_section = ClinicalSection(
-                        section_name=sec_name,
-                        prompt="dummy prompt",
-                        generation_config=GenerationConfig(
-                            llm_version="gemini-2.5-flash", max_output_tokens=100, temperature=0.1, top_p=1.0
-                        )
-                    )
-                    # preprocessed_text = json.dumps(patient_data)
-                    # preprocessed_data_map = {mrn: preprocessed_text}
-                    # narrative = await mock_call_gemini(dummy_section, mrn, preprocessed_data=patient_data)
-                    tasks.append(mock_call_gemini(dummy_section, mrn, preprocessed_data=patient_data))
+                print(f"Generating {sec_name} using Vertex AI with provided data...")
+                tasks.append(call_gemini_vertex(sec_name, patient_data))
 
             narratives = await asyncio.gather(*tasks)
 
-                # results.append({
-                #     "title": sec_name,
-                #     "content": narrative
-                # })
             results = [
                 {"title": title, "content": content}
                 for title, content in zip(sections_to_generate, narratives)
@@ -474,7 +388,7 @@ class EvalRequest(BaseModel):
     sections: List[dict]
 
 
-@app.post("/api/patient/{mrn}/evaluate")
+@clingen_router.post("/api/patient/{mrn}/evaluate")
 async def evaluate_patient_narrative(mrn: str, request: EvalRequest):
     """
     Takes the narrative variable from the frontend and audits it.
@@ -487,11 +401,11 @@ async def evaluate_patient_narrative(mrn: str, request: EvalRequest):
         print(f"Evaluation Error: {e}")
         raise HTTPException(status_code=500, detail="Evaluation failed")
 
-@app.get("/api/metadata")
+@clingen_router.get("/api/metadata")
 def get_metadata():
     return load_dummy_metadata()
 
-@app.get("/api/patient/{mrn}/data")
+@clingen_router.get("/api/patient/{mrn}/data")
 def get_patient_data(mrn: str):
     try:
         data_path = os.path.join(data_dir, "patient_data.json")
@@ -522,7 +436,7 @@ def extract_text_from_pdf(file_path):
     return text
 
 
-@app.post("/api/patient/{mrn}/lab-narrative")
+@clingen_router.post("/api/patient/{mrn}/lab-narrative")
 async def generate_lab_narrative(mrn: str):
     # Locate the file in the backend data folder
     pdf_path = os.path.join(data_dir, "sample_oncology.pdf")
@@ -544,38 +458,23 @@ async def generate_lab_narrative(mrn: str):
     """
 
     try:
-        response = await asyncio.to_thread(gemini_model.generate_content, prompt)
+        response = await client.aio.models.generate_content(
+            model=CLINGEN_MODEL,
+            contents=prompt
+        )
         return {
             "title": "Oncology Lab Interpretation",
             "content": response.text
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
 
-from fastapi.responses import FileResponse
-# --- STATIC FILES (Moved to bottom to avoid stealing API routes) ---
-frontend_dist_path = os.path.abspath(os.path.join(current_dir, "..", "..", "..", "frontend", "dist"))
+@clingen_router.get("/api/patient/{mrn}/lab-pdf")
+def get_lab_pdf(mrn: str):
+    """Serves the actual hematopathology/oncology lab report PDF directly from the backend data folder."""
+    pdf_path = os.path.join(data_dir, "sample_oncology.pdf")
+    if not os.path.exists(pdf_path):
+        raise HTTPException(status_code=404, detail="Lab report PDF not found on server")
+    from fastapi.responses import FileResponse
+    return FileResponse(pdf_path, media_type="application/pdf")
 
-if os.path.exists(frontend_dist_path):
-    app.mount("/assets", StaticFiles(directory=os.path.join(frontend_dist_path, "assets")), name="assets")
-
-@app.get("/{full_path:path}", response_class=HTMLResponse)
-async def serve_frontend(request: Request, full_path: str):
-    if full_path.startswith("api"):
-       raise HTTPException(status_code=404, detail="API route not found")
-
-    # 2. Check if the specific file (like logo.png) exists in dist
-    file_path = os.path.join(frontend_dist_path, full_path)
-    if os.path.isfile(file_path):
-        return FileResponse(file_path) # Serves the actual image file
-      
-    index_path = os.path.join(frontend_dist_path, "index.html")
-    if os.path.exists(index_path):
-        with open(index_path, "r") as f:
-            # return f.read()
-            return FileResponse(index_path)
-    return "<html><body><h1>ClinGenSynth Demo API</h1><p>Frontend not found.</p></body></html>"

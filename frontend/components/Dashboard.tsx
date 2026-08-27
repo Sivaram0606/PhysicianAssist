@@ -159,7 +159,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ data, onReset, onQuestionn
               <div className="flex flex-col items-center justify-center py-20 text-slate-400">
                 <Loader2 size={40} className="animate-spin mb-4 text-clinical-500" />
                 <p className="text-sm font-bold tracking-wide">Analyzing patient clinical narratives...</p>
-                <p className="text-xs text-slate-400 mt-1">Generating treatment recommendations and mapping REDCap fields.</p>
+                <p className="text-xs text-slate-400 mt-1">Generating treatment recommendations and mapping clinical fields.</p>
               </div>
             ) : treatmentPlan ? (
               <div 
