@@ -34,4 +34,3 @@ loguru
 fastapi-cache2
 orjson
 mcp<2.0.0
-mcp-types<2.0.0
