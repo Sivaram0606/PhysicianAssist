@@ -37,7 +37,8 @@ steps:
       '--allow-unauthenticated',
       '--service-account', 'anaphor@pocprojects-502518.iam.gserviceaccount.com',
       '--set-env-vars', 'GOOGLE_CLOUD_PROJECT=pocprojects-502518,GOOGLE_CLOUD_LOCATION=global',
-      '--port', '8000'
+      '--port', '8000',
+      '--memory', '2Gi'
     ]
     id: 'deploy-backend'
 
