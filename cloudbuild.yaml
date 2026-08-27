@@ -11,7 +11,7 @@ steps:
       'build',
       '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/clingen/clingen-backend:$BUILD_ID',
       '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/clingen/clingen-backend:latest',
-      '-f', 'services/clingen_synth/Dockerfile',
+      '-f', 'Dockerfile',
       '.'
     ]
     id: 'build-backend'
