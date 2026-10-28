@@ -2,6 +2,7 @@ import os
 import sys
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 import uvicorn
 
 # Inject the monorepo root path into sys.path to allow root configuration imports natively
@@ -37,5 +38,15 @@ try:
 except Exception as e:
     print(f"Warning: Failed to load survey_tailor router: {e}")
 
+# 3. Serve compiled React Frontend (frontend/dist) from the same FastAPI server
+frontend_dist = os.path.join(current_dir, "frontend", "dist")
+if os.path.isdir(frontend_dist):
+    app.mount("/", StaticFiles(directory=frontend_dist, html=True), name="frontend")
+    print(f"Unified Server: Serving static frontend UI from {frontend_dist}")
+else:
+    print(f"Warning: Frontend build directory not found at {frontend_dist}. Run 'npm run build' in ./frontend.")
+
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8001)
+    port = int(os.getenv("PORT", 8001))
+    uvicorn.run(app, host="0.0.0.0", port=port)
+

@@ -1,0 +1,7 @@
+project_id         = "agentic-physicianassist-2257"
+region             = "us-central1"
+location           = "global"
+service_name       = "clingen-app"
+service_account_id = "clingen-cloudrun-sa"
+artifact_repo_name = "clingen"
+mcp_server_name    = "agentregistry-00000000-0000-0000-8c4c-b4550d010e13"
