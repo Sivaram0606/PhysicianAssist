@@ -9,7 +9,7 @@ run:
 		wait
 
 deploy:
-	terraform -chdir=terraform init -upgrade=false
+	terraform -chdir=terraform init -reconfigure -upgrade=false
 	terraform -chdir=terraform apply
 
 destroy:

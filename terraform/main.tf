@@ -28,12 +28,14 @@ locals {
   ])
 
   cloudrun_sa_roles = toset([
-    "roles/aiplatform.user",
-    "roles/discoveryengine.admin",
-    "roles/storage.admin",
-    "roles/serviceusage.serviceUsageConsumer",
-    "roles/artifactregistry.writer",
-    "roles/logging.logWriter",
+    "roles/aiplatform.user",                   # Agent Platform User
+    "roles/agentregistry.admin",               # Agent Registry API Admin
+    "roles/artifactregistry.writer",           # Artifact Registry Writer
+    "roles/discoveryengine.admin",             # Discovery Engine Admin
+    "roles/logging.logWriter",                 # Logs Writer
+    "roles/mcp.admin",                         # MCP Admin
+    "roles/serviceusage.serviceUsageConsumer", # Service Usage Consumer
+    "roles/storage.admin",                     # Storage Admin
   ])
 }
 
@@ -112,6 +114,11 @@ resource "terraform_data" "docker_build_push" {
 }
 
 # 7. Single Unified Cloud Run v2 Service (serves both React UI and FastAPI Backend)
+moved {
+  from = google_cloud_run_v2_service.clingen_app
+  to   = google_cloud_run_v2_service.agentic_physicianassist_app
+}
+
 resource "google_cloud_run_v2_service" "agentic_physicianassist_app" {
   name                = var.service_name
   location            = var.region

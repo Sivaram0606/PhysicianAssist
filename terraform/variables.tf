@@ -19,7 +19,7 @@ variable "location" {
 variable "service_name" {
   description = "The name of the unified Cloud Run service (serving both UI and Backend)."
   type        = string
-  default     = "agentic-physicianassist-app"
+  default     = "clingen-app"
 }
 
 variable "service_account_id" {
