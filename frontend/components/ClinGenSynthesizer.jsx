@@ -153,14 +153,14 @@ export default function ClinGenSynthesizer({ onExportNarrative, onBackToPortal }
             <div className="w-10 h-10 flex items-center justify-center bg-clinical-100 rounded-xl border border-clinical-200/50 shadow-sm overflow-hidden p-1.5 transition-colors">
               <img 
                 src="/logo.png" 
-                alt="ClinGenSynth Logo" 
+                alt="Agentic-PhysicianAssist Logo" 
                 className="w-full h-full object-contain" 
               />
             </div>
             
             <div className="flex flex-col">
               <span className="font-bold text-xl tracking-tight text-slate-900 uppercase leading-none">
-                ClinGen<span className="text-clinical-600">Synth</span>
+                Agentic-<span className="text-clinical-600">PhysicianAssist</span>
               </span>
               <span className="text-[9px] text-clinical-600 font-bold tracking-[0.2em] uppercase">Intelligent Synthesis Hub</span>
             </div>

@@ -53,7 +53,7 @@ An advanced, high-performance full-stack clinical questionnaire tailoring platfo
 
 The monorepo is cleanly flattened and organized as follows:
 ```text
-/home/john/clingen/
+/home/john/Agentic-PhysicianAssist/
 ├── main.py                    # Root Gateway Server (Orchestrator)
 ├── settings.py                # Centralized GCP Project & Model configurations
 ├── requirements.txt           # Unified Master python dependencies
@@ -93,7 +93,7 @@ gcloud config set project [YOUR_PROJECT_ID]
 ### Option A: Running with Docker Compose (Recommended Separated Mode)
 You can launch the complete, isolated multi-service local environment with a single command:
 ```bash
-docker-compose up --build
+docker compose up --build
 ```
 - **Hot-Reloading Frontend Panel:** Available at [http://localhost:3000](http://localhost:3000)
 - **Backend APIs:** Available at [http://localhost:8000/docs](http://localhost:8000/docs)
@@ -122,7 +122,7 @@ Open your browser and navigate to [http://localhost:8000](http://localhost:8000)
 Deployments are automated through **Google Cloud Build** (`cloudbuild.yaml`):
 1. **Backend Deploy (Google Cloud Run):**
    - Built using the root `Dockerfile` (context `.`) to package the FastAPI orchestrator.
-   - Pushed to the **`clingen`** Artifact Registry repository.
+   - Pushed to the **`Agentic-PhysicianAssist`** Artifact Registry repository.
    - Deployed as `clinical-survey-intelligence-backend` on port `8000`.
 2. **Frontend Deploy (Google App Engine):**
    - Compiles static React assets, baking in the production Cloud Run backend URL.
@@ -133,6 +133,6 @@ Deployments are automated through **Google Cloud Build** (`cloudbuild.yaml`):
 ## 🛠️ Technical Features & Implementation Notes
 
 - **Decoupled Prompts:** Prompt markdown system instructions and template strings are stored in `services/survey_assistant/prompts` to ensure clean segregation of prompts from code.
-- **Centralized Configuration:** The entire application leverages `/home/john/clingen/settings.py` as its singular source of truth for runtime variables, making the deployment pipeline robust.
+- **Centralized Configuration:** The entire application leverages `/home/john/Agentic-PhysicianAssist/settings.py` as its singular source of truth for runtime variables, making the deployment pipeline robust.
 - **Robust Error Handling:** Integrates `tenacity` exponential backoff retries specifically for `429 RESOURCE_EXHAUSTED` rate limits.
 - **Concurrently Executing Agents:** Tailoring multiple clinical templates simultaneously is optimized via Python's asynchronous standard library (`asyncio.gather`), significantly decreasing load times.

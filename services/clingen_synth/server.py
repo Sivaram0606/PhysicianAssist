@@ -23,9 +23,9 @@ if monorepo_root not in sys.path:
 
 # Pull configuration properties from the centralized settings module
 from settings import (
-    CLINGEN_PROJECT_ID as PROJECT_ID,
-    CLINGEN_LOCATION as LOCATION,
-    CLINGEN_MODEL
+    AGENTIC_PHYSICIANASSIST_PROJECT_ID as PROJECT_ID,
+    AGENTIC_PHYSICIANASSIST_LOCATION as LOCATION,
+    AGENTIC_PHYSICIANASSIST_MODEL
 )
 
 EVALUATION_METRICS: List[str] = [
@@ -90,7 +90,7 @@ class NarrativeResponse(BaseModel):
     sections: List[dict]
 
 
-clingen_router = APIRouter()
+agentic_physicianassist_router = APIRouter()
 
 def load_dummy_patient_record(*args, **kwargs):
     """Mocks get_preprocessed_patient_record"""
@@ -229,7 +229,7 @@ async def call_gemini_vertex(section_name: str, patient_record: dict):
 
     try:
         response = await client.aio.models.generate_content(
-            model=CLINGEN_MODEL,
+            model=AGENTIC_PHYSICIANASSIST_MODEL,
             contents=prompt
         )
         narrative = response.text
@@ -283,7 +283,7 @@ async def call_gemini_vertex(section_name: str, patient_record: dict):
             """
             
             refiner_res = await client.aio.models.generate_content(
-                model=CLINGEN_MODEL,
+                model=AGENTIC_PHYSICIANASSIST_MODEL,
                 contents=refine_prompt
             )
             best_field = refiner_res.text.strip()
@@ -302,7 +302,7 @@ async def call_gemini_vertex(section_name: str, patient_record: dict):
         print(f"CRITICAL ERROR in {section_name}: {e}", flush=True)
         return f"**{section_name}**\n\nClinical narrative section could not be generated: Clinical Intelligence Model (Gemini 3.5) was unreachable."
 
-@clingen_router.get("/api/patients", response_model=List[PatientSummary])
+@agentic_physicianassist_router.get("/api/patients", response_model=List[PatientSummary])
 def get_patients():
     """Returns list of patients from the dummy data"""
     try:
@@ -327,7 +327,7 @@ def get_patients():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@clingen_router.post("/api/patient/{mrn}/narrative")
+@agentic_physicianassist_router.post("/api/patient/{mrn}/narrative")
 async def generate_patient_narrative(mrn: str, request: PatientDataRequest):
     """
     Generates narrative based on the provided form data.
@@ -388,7 +388,7 @@ class EvalRequest(BaseModel):
     sections: List[dict]
 
 
-@clingen_router.post("/api/patient/{mrn}/evaluate")
+@agentic_physicianassist_router.post("/api/patient/{mrn}/evaluate")
 async def evaluate_patient_narrative(mrn: str, request: EvalRequest):
     """
     Takes the narrative variable from the frontend and audits it.
@@ -401,11 +401,11 @@ async def evaluate_patient_narrative(mrn: str, request: EvalRequest):
         print(f"Evaluation Error: {e}")
         raise HTTPException(status_code=500, detail="Evaluation failed")
 
-@clingen_router.get("/api/metadata")
+@agentic_physicianassist_router.get("/api/metadata")
 def get_metadata():
     return load_dummy_metadata()
 
-@clingen_router.get("/api/patient/{mrn}/data")
+@agentic_physicianassist_router.get("/api/patient/{mrn}/data")
 def get_patient_data(mrn: str):
     try:
         data_path = os.path.join(data_dir, "patient_data.json")
@@ -436,7 +436,7 @@ def extract_text_from_pdf(file_path):
     return text
 
 
-@clingen_router.post("/api/patient/{mrn}/lab-narrative")
+@agentic_physicianassist_router.post("/api/patient/{mrn}/lab-narrative")
 async def generate_lab_narrative(mrn: str):
     # Locate the file in the backend data folder
     pdf_path = os.path.join(data_dir, "sample_oncology.pdf")
@@ -459,7 +459,7 @@ async def generate_lab_narrative(mrn: str):
 
     try:
         response = await client.aio.models.generate_content(
-            model=CLINGEN_MODEL,
+            model=AGENTIC_PHYSICIANASSIST_MODEL,
             contents=prompt
         )
         return {
@@ -469,7 +469,7 @@ async def generate_lab_narrative(mrn: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@clingen_router.get("/api/patient/{mrn}/lab-pdf")
+@agentic_physicianassist_router.get("/api/patient/{mrn}/lab-pdf")
 def get_lab_pdf(mrn: str):
     """Serves the actual hematopathology/oncology lab report PDF directly from the backend data folder."""
     pdf_path = os.path.join(data_dir, "sample_oncology.pdf")

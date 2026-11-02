@@ -22,13 +22,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 1. Mount specialized clingen router
+# 1. Mount specialized Agentic-PhysicianAssist router
 try:
-    from services.clingen_synth.server import clingen_router
-    app.include_router(clingen_router)
-    print("Unified Server: clingen_synth router registered successfully.")
+    from services.clingen_synth.server import agentic_physicianassist_router
+    app.include_router(agentic_physicianassist_router)
+    print("Unified Server: agentic_physicianassist router registered successfully.")
 except Exception as e:
-    print(f"Warning: Failed to load clingen_synth router: {e}")
+    print(f"Warning: Failed to load agentic_physicianassist router: {e}")
 
 # 2. Mount specialized survey_tailor router
 try:

@@ -1,6 +1,6 @@
 # ==============================================================================
 # Unified Clinical Research Monorepo - Master Python Requirements
-# Unifies dependencies across ClinGen, Survey Tailor, and Patient Survey Assistant.
+# Unifies dependencies across Agentic-PhysicianAssist, Survey Tailor, and Patient Survey Assistant.
 # ==============================================================================
 
 # === Core Web Platform & ASGI Server ===

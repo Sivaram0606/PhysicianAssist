@@ -1,7 +1,7 @@
 # Google Cloud Build Pipeline Configuration
 # Automates:
 # - Unified Full-Stack App (FastAPI Backend + React Frontend):
-#   Dockerizes via multi-stage Dockerfile, pushes to Artifact Registry ('clingen' repo),
+#   Dockerizes via multi-stage Dockerfile, pushes to Artifact Registry ('agentic-physicianassist' repo),
 #   and deploys a single service to Google Cloud Run (Port 8000)
 
 steps:
@@ -9,34 +9,34 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: [
       'build',
-      '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/clingen/clingen-backend:$BUILD_ID',
-      '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/clingen/clingen-backend:latest',
+      '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/agentic-physicianassist/agentic-physicianassist-backend:$BUILD_ID',
+      '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/agentic-physicianassist/agentic-physicianassist-backend:latest',
       '-f', 'Dockerfile',
       '.'
     ]
     id: 'build-unified-app'
 
-  # 2. Push Image (Build ID Tag) to Artifact Registry ('clingen' repository)
+  # 2. Push Image (Build ID Tag) to Artifact Registry ('agentic-physicianassist' repository)
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/clingen/clingen-backend:$BUILD_ID']
+    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/agentic-physicianassist/agentic-physicianassist-backend:$BUILD_ID']
     id: 'push-unified-commit'
 
-  # 3. Push Image (Latest Tag) to Artifact Registry ('clingen' repository)
+  # 3. Push Image (Latest Tag) to Artifact Registry ('agentic-physicianassist' repository)
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/clingen/clingen-backend:latest']
+    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/agentic-physicianassist/agentic-physicianassist-backend:latest']
     id: 'push-unified-latest'
 
   # 4. Deploy Unified Service to Google Cloud Run on Port 8000
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
     args: [
-      'run', 'deploy', 'clingen-backend',
-      '--image', 'us-central1-docker.pkg.dev/$PROJECT_ID/clingen/clingen-backend:$BUILD_ID',
+      'run', 'deploy', 'agentic-physicianassist-backend',
+      '--image', 'us-central1-docker.pkg.dev/$PROJECT_ID/agentic-physicianassist/agentic-physicianassist-backend:$BUILD_ID',
       '--region', 'us-central1',
       '--platform', 'managed',
       '--allow-unauthenticated',
       '--service-account', 'anaphor@$PROJECT_ID.iam.gserviceaccount.com',
-      '--set-env-vars', 'GOOGLE_CLOUD_PROJECT=$PROJECT_ID,CLINGEN_PROJECT_ID=$PROJECT_ID,GOOGLE_CLOUD_LOCATION=global',
+      '--set-env-vars', 'GOOGLE_CLOUD_PROJECT=$PROJECT_ID,AGENTIC_PHYSICIANASSIST_PROJECT_ID=$PROJECT_ID,GOOGLE_CLOUD_LOCATION=global',
       '--port', '8000',
       '--memory', '2Gi',
       '--cpu', '2'
@@ -44,8 +44,7 @@ steps:
     id: 'deploy-unified-app'
 
 images:
-  - 'us-central1-docker.pkg.dev/$PROJECT_ID/clingen/clingen-backend:$BUILD_ID'
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/agentic-physicianassist/agentic-physicianassist-backend:$BUILD_ID'
 
 options:
   logging: CLOUD_LOGGING_ONLY
-

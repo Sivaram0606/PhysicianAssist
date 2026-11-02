@@ -19,23 +19,23 @@ variable "location" {
 variable "service_name" {
   description = "The name of the unified Cloud Run service (serving both UI and Backend)."
   type        = string
-  default     = "clingen-app"
+  default     = "agentic-physicianassist-app"
 }
 
 variable "service_account_id" {
   description = "The account ID for the dedicated Cloud Run service account."
   type        = string
-  default     = "clingen-cloudrun-sa"
+  default     = "agentic-physicianassist-sa"
 }
 
 variable "artifact_repo_name" {
   description = "The Artifact Registry Docker repository name."
   type        = string
-  default     = "clingen"
+  default     = "agentic-physicianassist"
 }
 
 variable "survey_bucket_name" {
-  description = "Name of the GCS bucket for storing deployed surveys. Defaults to <project_id>-clingen-surveys if empty."
+  description = "Name of the GCS bucket for storing deployed surveys. Defaults to <project_id>-agentic-physicianassist-surveys if empty."
   type        = string
   default     = ""
 }

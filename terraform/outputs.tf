@@ -1,6 +1,6 @@
 output "cloud_run_url" {
-  description = "Public URL of the unified ClinGen Cloud Run service (Frontend + Backend APIs)."
-  value       = google_cloud_run_v2_service.clingen_app.uri
+  description = "Public URL of the unified Agentic-PhysicianAssist Cloud Run service (Frontend + Backend APIs)."
+  value       = google_cloud_run_v2_service.agentic_physicianassist_app.uri
 }
 
 output "cloud_run_service_account" {

@@ -10,10 +10,10 @@ os.environ["GOOGLE_CLOUD_PROJECT"] = GOOGLE_CLOUD_PROJECT
 GCP_REGION = os.getenv("GCP_REGION") or "us-central1"
 GOOGLE_CLOUD_LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION") or "global"
 
-# 1. ClinGen Synthesis Service Configurations
-CLINGEN_PROJECT_ID = os.getenv("CLINGEN_PROJECT_ID") or "agentic-physicianassist-2257"
-CLINGEN_LOCATION = os.getenv("CLINGEN_LOCATION") or "global"
-CLINGEN_MODEL = os.getenv("CLINGEN_MODEL") or "gemini-3.5-flash"
+# 1. Agentic-PhysicianAssist Synthesis Service Configurations
+AGENTIC_PHYSICIANASSIST_PROJECT_ID = os.getenv("AGENTIC_PHYSICIANASSIST_PROJECT_ID") or "agentic-physicianassist-2257"
+AGENTIC_PHYSICIANASSIST_LOCATION = os.getenv("AGENTIC_PHYSICIANASSIST_LOCATION") or "global"
+AGENTIC_PHYSICIANASSIST_MODEL = os.getenv("AGENTIC_PHYSICIANASSIST_MODEL") or "gemini-3.5-flash"
 
 # 2. Survey Tailor Backend Configurations
 SURVEY_BUCKET_NAME = os.getenv("SURVEY_BUCKET_NAME", "clinical-chatbot-pocprojects")

@@ -1,22 +1,22 @@
-# **ClinGen: Automated Clinical Narrative & Phenotyping Engine**
+# **Agentic-PhysicianAssist: Automated Clinical Narrative & Phenotyping Engine**
 
-**ClinGen** is a high-performance clinical automation pipeline designed to bridge the gap between structured registry data and professional medical documentation. Built on **Google Cloud Vertex AI**, it transforms complex patient data into validated, peer-reviewed clinical narratives in seconds.
+**Agentic-PhysicianAssist** is a high-performance clinical automation pipeline designed to bridge the gap between structured registry data and professional medical documentation. Built on **Google Cloud Vertex AI**, it transforms complex patient data into validated, peer-reviewed clinical narratives in seconds.
 
 ---
 
 ## **🌟 Purpose**
-Modern medicine is data-rich but narrative-driven. Clinicians often spend hours manually synthesizing raw JSON registry data into readable History of Present Illness (HPI) or Review of Systems (ROS) sections. **ClinGen** automates this synthesis while providing an interactive, "Trust but Verify" audit trail for every claim generated.
+Modern medicine is data-rich but narrative-driven. Clinicians often spend hours manually synthesizing raw JSON registry data into readable History of Present Illness (HPI) or Review of Systems (ROS) sections. **Agentic-PhysicianAssist** automates this synthesis while providing an interactive, "Trust but Verify" audit trail for every claim generated.
 
 ---
 
 ## **🚀 Key Features**
 
 ### **1. Parallelized Clinical Synthesis**
-Unlike traditional LLM wrappers that generate text sequentially, ClinGen utilizes a **High-Concurrency Architecture**. Powered by `asyncio.gather` and **Gemini 3.5 Flash**, the system triggers generation for 8+ clinical sections simultaneously.
+Unlike traditional LLM wrappers that generate text sequentially, Agentic-PhysicianAssist utilizes a **High-Concurrency Architecture**. Powered by `asyncio.gather` and **Gemini 3.5 Flash**, the system triggers generation for 8+ clinical sections simultaneously.
 * **Impact:** Total generation time is slashed from **30+ seconds to under 4 seconds**.
 
 ### **2. Deep-Link Traceability (Grounding & Citations)**
-ClinGen solves the "Black Box" problem of AI. Every clinical claim is cross-referenced against the source patient record via **Google Discovery Engine**. 
+Agentic-PhysicianAssist solves the "Black Box" problem of AI. Every clinical claim is cross-referenced against the source patient record via **Google Discovery Engine**. 
 * **Interactive Citations:** Clicking a citation (e.g., `[1]`) in the narrative instantly highlights the corresponding raw data field in the UI sidebar.
 * **Refiner Logic:** A secondary LLM layer ensures that clinical scores (e.g., MIDAS, PROMIS, Beighton) are mapped to their specific interpreted meanings.
 
@@ -25,7 +25,7 @@ ClinGen solves the "Black Box" problem of AI. Every clinical claim is cross-refe
 * **Ambient Synthesis:** Allows coordinators to trigger a specialized Oncology Scribe model to digest the PDF contents and weave WBC counts and genetic markers directly into the patient note.
 
 ### **4. Automated AI Audit (LLM-as-a-Judge)**
-Upon generation, ClinGen triggers an independent **Vertex AI EvalTask** that audits the narrative using objective metrics:
+Upon generation, Agentic-PhysicianAssist triggers an independent **Vertex AI EvalTask** that audits the narrative using objective metrics:
 * **Groundedness:** Verifying claims against source facts.
 * **Coherence & Fluency:** Ensuring professional medical standards.
 
@@ -35,7 +35,7 @@ Upon generation, ClinGen triggers an independent **Vertex AI EvalTask** that aud
 
 The monorepo is organized as follows:
 ```text
-/home/john/clingen/
+/home/john/Agentic-PhysicianAssist/
 ├── main.py                    # Root Gateway Server (Orchestrator)
 ├── settings.py                # Central GCP Project & Model configuration
 ├── requirements.txt           # Unified Master python dependencies
@@ -77,7 +77,7 @@ Open your browser and navigate to `http://localhost:8000`.
 ### **4. Option B: Local Docker-Compose Run (Hot-Reloading)**
 This spins up both the Nginx React frontend (Port 3000) and python backend (Port 8000) concurrently inside isolated docker containers, complete with ADC mount volumes:
 ```bash
-docker-compose up --build
+docker compose up --build
 ```
 Open your browser and navigate to `http://localhost:3000` (frontend) which proxies automatically to the backend on `http://localhost:8000`.
 
@@ -88,11 +88,11 @@ Open your browser and navigate to `http://localhost:3000` (frontend) which proxi
 Deployments are automated through **Google Cloud Build** (`cloudbuild.yaml`):
 1. **Backend Deploy (Google Cloud Run):**
    - Built using the root `Dockerfile` (context `.`) to package the FastAPI orchestrator.
-   - Pushed to the **`clingen`** Artifact Registry repository.
+   - Pushed to the **`Agentic-PhysicianAssist`** Artifact Registry repository.
    - Deployed as `clinical-survey-intelligence-backend` on port `8000`.
 2. **Frontend Deploy (Google App Engine):**
    - Compiles static React assets, baking in the production Cloud Run backend URL.
    - Deployed directly to App Engine Standard using `frontend/app.yaml` under `clinical-survey-intelligence-frontend` for high-performance CDN static delivery.
 
 ---
-*Vision: ClinGen is designed to empower clinicians with AI that is not only fast but demonstrably grounded in truth.*
+*Vision: Agentic-PhysicianAssist is designed to empower clinicians with AI that is not only fast but demonstrably grounded in truth.*

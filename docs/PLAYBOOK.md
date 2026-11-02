@@ -22,9 +22,9 @@ gcloud app create --region=us-central1
 ```
 
 ### **Create Artifact Registry Repo**
-Create a new Docker repository named **`clingen`** inside us-central1 to store your backend images:
+Create a new Docker repository named **`agentic-physicianassist`** inside us-central1 to store your backend images:
 ```bash
-gcloud artifacts repositories create clingen \
+gcloud artifacts repositories create agentic-physicianassist \
     --repository-format=docker \
     --location=us-central1 \
     --description="Repository for Clinical Notes & Questionnaire Backend Containers"
@@ -51,7 +51,7 @@ The monorepo separates systems while deploying seamlessly:
 
 ### **A. Backend Server (Google Cloud Run)**
 - **Configuration (`settings.py`):** Located at the project root. Holds your active GCP `PROJECT_ID`, location, and clinical model definitions.
-- **Dockerfile (`Dockerfile`):** Located at the project root. Pulls python 3.12, installs the master unified `/home/john/clingen/requirements.txt`, and boots uvicorn on port `8000`.
+- **Dockerfile (`Dockerfile`):** Located at the project root. Pulls python 3.12, installs the master unified `/home/john/Agentic-PhysicianAssist/requirements.txt`, and boots uvicorn on port `8000`.
 
 ### **B. Frontend Client (Google App Engine)**
 - **App Engine Config (`frontend/app.yaml`):** Located in the `frontend/` folder. Serves compiled React assets directly as GAE CDN static files using python312 runtime.
@@ -72,7 +72,7 @@ gcloud builds submit --config=cloudbuild.yaml --project=[YOUR_PROJECT_ID]
 ### **Pipeline Execution Summary**
 Cloud Build sequentially executes:
 1. **`build-backend`**: Builds the backend-only container using the root `Dockerfile`.
-2. **`push-backend`**: Tags and pushes the container to `us-central1-docker.pkg.dev/[PROJECT_ID]/clingen/backend:latest`.
+2. **`push-backend`**: Tags and pushes the container to `us-central1-docker.pkg.dev/[PROJECT_ID]/agentic-physicianassist/backend:latest`.
 3. **`deploy-backend`**: Launches the container on Google Cloud Run on port `8000`.
 4. **`build-frontend-assets`**: Installs Node modules and compiles React static files inside `frontend/dist/` with the Cloud Run API URL.
 5. **`deploy-frontend`**: deploys the static files directly to App Engine Standard using `frontend/app.yaml`.

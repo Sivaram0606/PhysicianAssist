@@ -3,13 +3,13 @@ import { FileUpload } from './components/FileUpload';
 import { Dashboard } from './components/Dashboard';
 import { QuestionnaireResult } from './components/QuestionnaireResult';
 import { ChatInterface } from './components/ChatInterface';
-import ClinGenSynthesizer from './components/ClinGenSynthesizer'; // Imported ClinGen Synthesizer
+import ClinGenSynthesizer from './components/ClinGenSynthesizer'; // Imported Agentic-PhysicianAssist Synthesizer
 import { ClinicalDataPayload, TailoredQuestionnaireResult } from './types';
 import { AlertCircle, Stethoscope, User, ArrowLeft, Sparkles } from 'lucide-react';
 
 const App: React.FC = () => {
   const [userRole, setUserRole] = useState<'coordinator' | 'patient' | null>('coordinator');
-  const [coordinatorTab, setCoordinatorTab] = useState<'clingen' | 'tailor'>('clingen');
+  const [coordinatorTab, setCoordinatorTab] = useState<'agentic-physicianassist' | 'tailor'>('agentic-physicianassist');
   const [clinicalData, setClinicalData] = useState<ClinicalDataPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [questionnaireResult, setQuestionnaireResult] = useState<TailoredQuestionnaireResult | null>(null);
@@ -32,14 +32,14 @@ const App: React.FC = () => {
     }
   }, []);
 
-  // Secure and elegant callback to hand off a synthesized narrative from ClinGen to Survey Tailoring
+  // Secure and elegant callback to hand off a synthesized narrative from Agentic-PhysicianAssist to Survey Tailoring
   const handleExportNarrative = (narrativeData: any) => {
     if (!narrativeData || !narrativeData.sections) {
       setError('Export failed: Synthesized narrative has an invalid schema.');
       return;
     }
 
-    // Convert ClinGen sections list into a single integrated markdown string
+    // Convert Agentic-PhysicianAssist sections list into a single integrated markdown string
     const combinedMarkdown = narrativeData.sections.map((section: any) => {
       return `## ${section.title}\n\n${section.content}`;
     }).join('\n\n');
@@ -98,7 +98,7 @@ const App: React.FC = () => {
     setSelectedTemplate(null);
     setUserRole('coordinator'); // Fallback to default role
     setError(null);
-    setCoordinatorTab('clingen');
+    setCoordinatorTab('agentic-physicianassist');
   };
 
   // If user is a patient, render ChatInterface in absolute full-screen mode directly at the root
@@ -116,8 +116,8 @@ const App: React.FC = () => {
     );
   }
 
-  // To preserve the gorgeous dark radial styling of ClinGen, render it as a full-page view without the white global navbar on top
-  if (userRole === 'coordinator' && coordinatorTab === 'clingen') {
+  // To preserve the gorgeous dark radial styling of Agentic-PhysicianAssist, render it as a full-page view without the white global navbar on top
+  if (userRole === 'coordinator' && coordinatorTab === 'agentic-physicianassist') {
     return (
       <ClinGenSynthesizer 
         onExportNarrative={handleExportNarrative} 
@@ -138,13 +138,13 @@ const App: React.FC = () => {
             <span className="font-bold text-xl tracking-tight">Clinical Survey Intelligence</span>
           </div>
 
-          {/* Toggle navigation for coordinators between ClinGen Synthesizer and Tailor workspace */}
+          {/* Toggle navigation for coordinators between Agentic-PhysicianAssist Synthesizer and Tailor workspace */}
           {userRole === 'coordinator' && (
             <div className="flex items-center bg-slate-100 p-1 rounded-2xl border border-slate-200">
               <button
-                onClick={() => setCoordinatorTab('clingen')}
+                onClick={() => setCoordinatorTab('agentic-physicianassist')}
                 className={`px-4 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 ${
-                  coordinatorTab === 'clingen'
+                  coordinatorTab === 'agentic-physicianassist'
                     ? 'bg-[#0284c7] text-white shadow-md'
                     : 'text-slate-500 hover:text-slate-900'
                 }`}

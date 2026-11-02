@@ -1,6 +1,6 @@
 locals {
-  bucket_name = var.survey_bucket_name != "" ? var.survey_bucket_name : "${var.project_id}-clingen-surveys"
-  image_uri   = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.clingen_repo.repository_id}/${var.service_name}:${var.image_tag}"
+  bucket_name = var.survey_bucket_name != "" ? var.survey_bucket_name : "${var.project_id}-agentic-physicianassist-surveys"
+  image_uri   = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.agentic_physicianassist_repo.repository_id}/${var.service_name}:${var.image_tag}"
 
   # Hash key source files so `terraform apply` automatically rebuilds the image when code changes
   source_hash = sha256(join("", [
@@ -49,8 +49,8 @@ resource "google_project_service" "apis" {
 resource "google_service_account" "cloudrun_sa" {
   project      = var.project_id
   account_id   = var.service_account_id
-  display_name = "ClinGen Unified Cloud Run Service Account"
-  description  = "Dedicated service account for the ClinGen Cloud Run service (created and destroyed by Terraform)."
+  display_name = "Agentic-PhysicianAssist Unified Cloud Run Service Account"
+  description  = "Dedicated service account for the Agentic-PhysicianAssist Cloud Run service (created and destroyed by Terraform)."
 
   depends_on = [google_project_service.apis]
 }
@@ -81,11 +81,11 @@ resource "google_storage_bucket_iam_member" "survey_bucket_sa" {
 }
 
 # 5. Artifact Registry Docker Repository (cleanly deleted with all images on `terraform destroy`)
-resource "google_artifact_registry_repository" "clingen_repo" {
+resource "google_artifact_registry_repository" "agentic_physicianassist_repo" {
   project       = var.project_id
   location      = var.region
   repository_id = var.artifact_repo_name
-  description   = "Docker repository for unified ClinGen application (Frontend + Backend)"
+  description   = "Docker repository for unified Agentic-PhysicianAssist application (Frontend + Backend)"
   format        = "DOCKER"
 
   depends_on = [google_project_service.apis]
@@ -104,7 +104,7 @@ resource "terraform_data" "docker_build_push" {
   }
 
   depends_on = [
-    google_artifact_registry_repository.clingen_repo,
+    google_artifact_registry_repository.agentic_physicianassist_repo,
     google_storage_bucket.survey_bucket,
     google_storage_bucket_iam_member.survey_bucket_sa,
     google_project_iam_member.cloudrun_sa_roles,
@@ -112,7 +112,7 @@ resource "terraform_data" "docker_build_push" {
 }
 
 # 7. Single Unified Cloud Run v2 Service (serves both React UI and FastAPI Backend)
-resource "google_cloud_run_v2_service" "clingen_app" {
+resource "google_cloud_run_v2_service" "agentic_physicianassist_app" {
   name                = var.service_name
   location            = var.region
   project             = var.project_id
@@ -142,7 +142,7 @@ resource "google_cloud_run_v2_service" "clingen_app" {
         value = var.project_id
       }
       env {
-        name  = "CLINGEN_PROJECT_ID"
+        name  = "AGENTIC_PHYSICIANASSIST_PROJECT_ID"
         value = var.project_id
       }
       env {
@@ -154,7 +154,7 @@ resource "google_cloud_run_v2_service" "clingen_app" {
         value = var.location
       }
       env {
-        name  = "CLINGEN_LOCATION"
+        name  = "AGENTIC_PHYSICIANASSIST_LOCATION"
         value = var.location
       }
       env {

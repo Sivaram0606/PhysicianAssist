@@ -13,7 +13,7 @@ if monorepo_root not in sys.path:
 
 # Pull configuration properties from the centralized settings module
 from settings import (
-    CLINGEN_MODEL as GEMINI_MODEL,
+    AGENTIC_PHYSICIANASSIST_MODEL as GEMINI_MODEL,
     GOOGLE_CLOUD_PROJECT,
     SURVEY_BUCKET_NAME,
     AGENT_ID,
