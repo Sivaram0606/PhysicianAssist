@@ -35,7 +35,7 @@ Upon generation, Agentic-PhysicianAssist triggers an independent **Vertex AI Eva
 
 The monorepo is organized as follows:
 ```text
-/home/john/Agentic-PhysicianAssist/
+AgenticPhysicianAssist/
 ├── main.py                    # Root Gateway Server (Orchestrator)
 ├── settings.py                # Central GCP Project & Model configuration
 ├── requirements.txt           # Unified Master python dependencies

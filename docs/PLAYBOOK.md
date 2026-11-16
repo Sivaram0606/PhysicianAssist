@@ -51,7 +51,7 @@ The monorepo separates systems while deploying seamlessly:
 
 ### **A. Backend Server (Google Cloud Run)**
 - **Configuration (`settings.py`):** Located at the project root. Holds your active GCP `PROJECT_ID`, location, and clinical model definitions.
-- **Dockerfile (`Dockerfile`):** Located at the project root. Pulls python 3.12, installs the master unified `/home/john/Agentic-PhysicianAssist/requirements.txt`, and boots uvicorn on port `8000`.
+- **Dockerfile (`Dockerfile`):** Located at the project root. Pulls python 3.12, installs the master unified `AgenticPhysicianAssist/requirements.txt`, and boots uvicorn on port `8000`.
 
 ### **B. Frontend Client (Google App Engine)**
 - **App Engine Config (`frontend/app.yaml`):** Located in the `frontend/` folder. Serves compiled React assets directly as GAE CDN static files using python312 runtime.

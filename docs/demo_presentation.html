@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agentic-PhysicianAssist — Executive Demo Presentation</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --ink: #0f172a;
+      --muted: #475569;
+      --subtle: #64748b;
+      --brand: #0284c7;
+      --brand-dark: #0369a1;
+      --brand-light: #e0f2fe;
+      --indigo: #4f46e5;
+      --indigo-light: #eef2ff;
+      --emerald: #059669;
+      --emerald-light: #ecfdf5;
+      --amber: #d97706;
+      --amber-light: #fffbeb;
+      --rose: #e11d48;
+      --rose-light: #fff1f2;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+      background: #0f172a;
+      color: var(--ink);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Deck Viewport */
+    .viewport {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 28px 10px;
+      min-height: 0;
+    }
+
+    .slide {
+      display: none;
+      width: 100%;
+      max-width: 1360px;
+      aspect-ratio: 16 / 9;
+      max-height: 100%;
+      background: var(--surface);
+      border-radius: 20px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.45);
+      padding: 44px 56px;
+      position: relative;
+      overflow: hidden;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .slide.active {
+      display: flex;
+      animation: fadeSlide 0.28s ease-out;
+    }
+
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Decorative subtle glow */
+    .slide::before {
+      content: "";
+      position: absolute;
+      top: -120px;
+      right: -120px;
+      width: 380px;
+      height: 380px;
+      background: radial-gradient(circle, rgba(2,132,199,0.08) 0%, rgba(255,255,255,0) 70%);
+      pointer-events: none;
+    }
+
+    /* Header Elements */
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--brand);
+      background: var(--brand-light);
+      padding: 5px 12px;
+      border-radius: 999px;
+      width: fit-content;
+      margin-bottom: 10px;
+    }
+
+    .eyebrow.indigo { color: var(--indigo); background: var(--indigo-light); }
+    .eyebrow.emerald { color: var(--emerald); background: var(--emerald-light); }
+
+    h1 {
+      font-size: clamp(32px, 3.4vw, 50px);
+      font-weight: 850;
+      letter-spacing: -0.025em;
+      line-height: 1.12;
+      color: var(--ink);
+    }
+
+    h2 {
+      font-size: clamp(24px, 2.3vw, 34px);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.18;
+      color: var(--ink);
+    }
+
+    .lead {
+      font-size: clamp(14px, 1.2vw, 18px);
+      color: var(--muted);
+      line-height: 1.55;
+      margin-top: 8px;
+      max-width: 960px;
+    }
+
+    .accent { color: var(--brand); }
+
+    /* Grids & Cards */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      flex: 1;
+      align-items: stretch;
+      margin-top: 20px;
+      min-height: 0;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+      flex: 1;
+      align-items: stretch;
+      margin-top: 18px;
+      min-height: 0;
+    }
+
+    .split-demo {
+      display: grid;
+      grid-template-columns: 38% 62%;
+      gap: 28px;
+      flex: 1;
+      align-items: center;
+      margin-top: 14px;
+      min-height: 0;
+    }
+
+    .card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .card.white { background: #fff; box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04); }
+    .card.top-blue { border-top: 4px solid var(--brand); }
+    .card.top-indigo { border-top: 4px solid var(--indigo); }
+    .card.top-emerald { border-top: 4px solid var(--emerald); }
+    .card.top-rose { border-top: 4px solid var(--rose); }
+
+    .badge-num {
+      width: 30px;
+      height: 30px;
+      border-radius: 9px;
+      background: var(--brand);
+      color: #fff;
+      font-weight: 800;
+      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .card h3 {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--ink);
+    }
+
+    .card p, .card li {
+      font-size: 13.5px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .card ul {
+      padding-left: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    /* Value List */
+    .value-list {
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
+      margin-top: 16px;
+      flex: 1;
+      justify-content: center;
+    }
+
+    .value-item {
+      display: grid;
+      grid-template-columns: 230px 1fr;
+      gap: 18px;
+      align-items: center;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      padding: 13px 18px;
+    }
+
+    .value-item .v-title {
+      font-weight: 800;
+      font-size: 14px;
+      color: var(--brand-dark);
+    }
+
+    .value-item.tech .v-title {
+      color: var(--indigo);
+    }
+
+    .value-item .v-desc {
+      font-size: 13.5px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    /* Image Frame */
+    .img-frame {
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+    }
+
+    .img-frame img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      border-radius: 9px;
+    }
+
+    /* Callout Steps */
+    .step-box {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .callout {
+      background: var(--bg);
+      border-left: 4px solid var(--brand);
+      padding: 11px 14px;
+      border-radius: 0 10px 10px 0;
+    }
+
+    .callout.indigo { border-left-color: var(--indigo); }
+    .callout.emerald { border-left-color: var(--emerald); }
+
+    .callout strong {
+      display: block;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--ink);
+      margin-bottom: 3px;
+    }
+
+    .callout span {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    /* Footer inside Slide */
+    .slide-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+      margin-top: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--subtle);
+    }
+
+    /* Bottom Deck Controls */
+    .controls {
+      background: #0f172a;
+      color: #cbd5e1;
+      padding: 8px 28px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      border-top: 1px solid #1e293b;
+    }
+
+    .btn-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .ctrl-btn {
+      background: #1e293b;
+      color: #f8fafc;
+      border: 1px solid #334155;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .ctrl-btn:hover { background: #334155; }
+
+    .progress-wrap {
+      flex: 1;
+      max-width: 360px;
+      height: 5px;
+      background: #1e293b;
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 0 20px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #0284c7, #38bdf8);
+      transition: width 0.25s ease;
+    }
+
+    /* Speaker Notes Drawer */
+    .notes-drawer {
+      display: none;
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 12px 32px;
+      font-size: 13px;
+      line-height: 1.5;
+      border-top: 1px solid #334155;
+      max-height: 130px;
+      overflow-y: auto;
+    }
+
+    .notes-drawer.open { display: block; }
+    .notes-drawer strong { color: #38bdf8; text-transform: uppercase; font-size: 11px; letter-spacing: 0.1em; }
+
+    @media print {
+      body { background: #fff; height: auto; overflow: visible; }
+      .viewport { display: block; padding: 0; }
+      .slide {
+        display: flex !important;
+        page-break-after: always;
+        box-shadow: none;
+        border: 1px solid #e2e8f0;
+        margin-bottom: 16px;
+      }
+      .controls, .notes-drawer { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="viewport">
+
+    <!-- SLIDE 1: TITLE -->
+    <section class="slide active" data-notes="Welcome everyone. Today we're showcasing Agentic-PhysicianAssist—an AI clinical co-pilot built on Google Cloud Vertex AI (Gemini 3.5 Flash) and Google Agent Development Kit (ADK). With a clinician always in the loop, it transforms dense patient intake records and diagnostic PDFs into grounded clinical notes and adaptive, zero-fatigue follow-up questionnaires.">
+      <div>
+        <div class="eyebrow">Google Cloud Vertex AI &bull; Google ADK &bull; Clinical Intelligence</div>
+        <h1 style="margin-top: 18px;">Agentic-<span class="accent">PhysicianAssist</span></h1>
+        <p class="lead" style="font-size: 20px; margin-top: 14px;">
+          Human-in-the-Loop Clinical Narrative Synthesis, Precision Questionnaire Tailoring &amp; Conversational Patient Intake
+        </p>
+      </div>
+
+      <div class="grid-3" style="max-height: 230px;">
+        <div class="card white top-blue">
+          <div class="eyebrow">Pillar 1</div>
+          <h3>Patient Narratives &amp; Notes</h3>
+          <p>Turns lengthy questionnaires &amp; lab PDFs into cited, audited multi-section clinical notes in seconds.</p>
+        </div>
+        <div class="card white top-indigo">
+          <div class="eyebrow indigo">Pillar 2</div>
+          <h3>Adaptive Next-Visit Surveys</h3>
+          <p>ADK multi-agent pipeline synthesizes care plans, selects priority forms, and tailors precision safety questions.</p>
+        </div>
+        <div class="card white top-emerald">
+          <div class="eyebrow emerald">Pillar 3</div>
+          <h3>Intelligent Survey Assistant</h3>
+          <p>Empathetic voice &amp; text patient intake portal that eliminates survey fatigue while preserving clinical schema IDs.</p>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Agentic-PhysicianAssist &bull; Demospace #2257</span>
+        <span>Powered by Gemini 3.5 Flash, Discovery Engine Grounding &amp; Google ADK</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 2: CLINICAL CHALLENGE -->
+    <section class="slide" data-notes="Why does this matter? Today's clinical intake workflow suffers from three compounding pain points: clinicians spend hours of after-clinic 'pajama time' manually reviewing fragmented forms and PDFs; coordinators rely on rigid, untailored survey templates; and patients face massive questionnaires full of irrelevant questions—driving high abandonment and unfocused visits.">
+      <div>
+        <div class="eyebrow">The Clinical Bottleneck</div>
+        <h2>Why Traditional Intake &amp; Pre-Visit Prep Break Down</h2>
+        <p class="lead">Clinicians are data-rich yet time-poor—spending hours manually bridging static questionnaires and clinical documentation.</p>
+      </div>
+
+      <div class="grid-3">
+        <div class="card white top-rose">
+          <div class="badge-num" style="background: var(--rose);">1</div>
+          <h3>Physician "Pajama Time"</h3>
+          <ul>
+            <li>Hours spent after clinic synthesizing scattered registry JSONs, long intake forms, and lab PDFs.</li>
+            <li>Manual drafting of HPI and ROS notes drives clinician burnout and administrative fatigue.</li>
+          </ul>
+        </div>
+        <div class="card white top-rose">
+          <div class="badge-num" style="background: var(--amber);">2</div>
+          <h3>Zero Questionnaire Tailoring</h3>
+          <ul>
+            <li>Coordinators manually pick from static departmental form catalogs.</li>
+            <li>Templates cannot adapt on-the-fly to a patient's active comorbidities, labs, or medication risks.</li>
+          </ul>
+        </div>
+        <div class="card white top-rose">
+          <div class="badge-num" style="background: var(--indigo);">3</div>
+          <h3>Survey Fatigue &amp; Dropouts</h3>
+          <ul>
+            <li>Patients receive lengthy, generic surveys packed with redundant or non-applicable questions.</li>
+            <li>Leads to low completion rates, missing pre-visit safety signals, and unfocused clinic time.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Agentic-PhysicianAssist &bull; Problem Statement</span>
+        <span>Slide 2 / 15</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 3: DEMO PURPOSE & THREE CAPABILITIES -->
+    <section class="slide" data-notes="Agentic-PhysicianAssist addresses all three challenges in one unified platform with a human-in-the-loop. First, it turns unstructured history and questionnaires into cited narratives. Second, it drafts physician-ready notes including pathology PDFs. Third, it builds personalized follow-up questionnaires and guides patients through completing them.">
+      <div>
+        <div class="eyebrow">Solution Overview</div>
+        <h2>One AI Assistant, Three Core Clinical Capabilities</h2>
+        <p class="lead">Turning high-volume patient data into verified, clinician-controlled action across the care continuum.</p>
+      </div>
+
+      <div class="grid-3">
+        <div class="card white top-blue">
+          <div class="badge-num">1</div>
+          <h3>Patient Narratives</h3>
+          <p><strong>What it does:</strong> Converts lengthy patient questionnaires and unstructured history into crisp clinical narratives.</p>
+          <p style="margin-top:auto; color: var(--brand-dark); font-weight: 700;">&#10003; Inline [n] source citations &amp; confidence scores so physicians verify every claim.</p>
+        </div>
+        <div class="card white top-indigo">
+          <div class="badge-num" style="background: var(--indigo);">2</div>
+          <h3>Physician Notes</h3>
+          <p><strong>What it does:</strong> Drafts 8-domain structured clinical notes plus ambient hematopathology/oncology lab PDF interpretations.</p>
+          <p style="margin-top:auto; color: var(--indigo); font-weight: 700;">&#10003; Ready for rapid physician review, audit inspection, and sign-off.</p>
+        </div>
+        <div class="card white top-emerald">
+          <div class="badge-num" style="background: var(--emerald);">3</div>
+          <h3>Next-Visit Questionnaires</h3>
+          <p><strong>What it does:</strong> Tailors personalized follow-up surveys (Retained, Dropped, AI-Suggested) and powers a conversational intake bot.</p>
+          <p style="margin-top:auto; color: var(--emerald); font-weight: 700;">&#10003; Helps both physicians prepare and patients respond via voice or text.</p>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Agentic-PhysicianAssist &bull; Core Capabilities</span>
+        <span>Slide 3 / 15</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 4: BUSINESS VALUE -->
+    <section class="slide" data-notes="From an executive and clinical operations standpoint, Agentic-PhysicianAssist delivers five measurable outcomes: giving physicians back pajama time, reducing burnout, lifting coordinator and nursing productivity, cutting patient survey fatigue, and earning clinical trust through citations, audit scores, and mandatory human sign-off.">
+      <div>
+        <div class="eyebrow">Executive Impact</div>
+        <h2>Business Value Across Physicians, Staff &amp; Patients</h2>
+      </div>
+
+      <div class="value-list">
+        <div class="value-item">
+          <div class="v-title">Gives Back "Pajama Time"</div>
+          <div class="v-desc">Cuts hours spent after clinic gathering and pulling together scattered patient information—letting physicians focus on treatment, not paperwork.</div>
+        </div>
+        <div class="value-item">
+          <div class="v-title">Reduces Clinician Burnout</div>
+          <div class="v-desc">Automates repetitive pre-visit, post-visit, and handover documentation to improve clinician satisfaction and retention.</div>
+        </div>
+        <div class="value-item">
+          <div class="v-title">Lifts Care Team Productivity</div>
+          <div class="v-desc">Nurses and clinical/research coordinators spend minutes instead of hours preparing charts and assembling follow-up instruments.</div>
+        </div>
+        <div class="value-item">
+          <div class="v-title">Improves Patient Experience</div>
+          <div class="v-desc">Conversational, personalized questionnaires eliminate irrelevant items—cutting survey fatigue and making clinic visits more focused.</div>
+        </div>
+        <div class="value-item">
+          <div class="v-title">Builds Regulated Clinical Trust</div>
+          <div class="v-desc">Inline citations, automated evaluation scores, and HITL sign-off keep clinicians in control—accelerating adoption in regulated healthcare settings.</div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Agentic-PhysicianAssist &bull; Business Value</span>
+        <span>Slide 4 / 15</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 5: TECHNICAL VALUE -->
+    <section class="slide" data-notes="Under the hood, the architecture is engineered for enterprise scale: any specialty can be onboarded by swapping questionnaire schemas and markdown prompts with zero rebuild; Google ADK orchestrates specialized Gemini 3.5 Flash agents; it ingests JSON, unstructured text, Lab PDFs, and EHR/FHIR exports; runs with low-latency async concurrency on Cloud Run; and validates quality via Vertex AI Evaluation.">
+      <div>
+        <div class="eyebrow indigo">Engineering &amp; Platform Differentiation</div>
+        <h2>Technical Value &amp; Enterprise Scalability</h2>
+      </div>
+
+      <div class="value-list">
+        <div class="value-item tech">
+          <div class="v-title">Reusable Across Specialties</div>
+          <div class="v-desc">Questionnaire- and prompt-driven design allows onboarding any specialty department simply by swapping metadata JSON and prompts—no code rebuild.</div>
+        </div>
+        <div class="value-item tech">
+          <div class="v-title">Specialty ADK Agents</div>
+          <div class="v-desc">Modular agents built with <strong>Google ADK</strong> and coordinated by <strong>Gemini 3.5 Flash</strong> handle care planning, form ranking, tailoring, and patient chat.</div>
+        </div>
+        <div class="value-item tech">
+          <div class="v-title">Any Clinical Data Source</div>
+          <div class="v-desc">Seamlessly processes structured intake JSON, unstructured clinical text, diagnostic lab PDFs, REDCap schemas, and EHR/FHIR exports.</div>
+        </div>
+        <div class="value-item tech">
+          <div class="v-title">Low Latency in Production</div>
+          <div class="v-desc">Unified <strong>FastAPI</strong> runtime on <strong>Google Cloud Run</strong> leverages parallel <code>asyncio.gather</code> synthesis and Cloud Storage / MCP sync for fast response times.</div>
+        </div>
+        <div class="value-item tech">
+          <div class="v-title">Continuous Quality Governance</div>
+          <div class="v-desc">HITL coordinator approval paired with automated <strong>Vertex AI Evaluation</strong> (pointwise Groundedness, Coherence, Fluency &amp; Quality metrics) guards model upgrades.</div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Agentic-PhysicianAssist &bull; Technical Value</span>
+        <span>Slide 5 / 15</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 6: THREE-PILLAR WORKFLOW ARCHITECTURE -->
+    <section class="slide" data-notes="Here is the end-to-end Three-Pillar workflow we will walk through live. Suite 1 (Narrative Synthesizer) ingests John Doe's record (MRN 1001) and lab PDFs to produce a cited clinical report and AI audit, then hands off to Suite 2 (Questionnaire Tailoring Suite), where ADK agents generate a treatment plan and Retained/Suggested diffs for HITL approval and GCS sync. Finally, Suite 3 (Survey Assistant) binds to MRN 1001 for guided voice/text patient intake.">
+      <div>
+        <div class="eyebrow">Application Architecture &amp; Workflow</div>
+        <h2>Three-Pillar Agentic Workflow</h2>
+      </div>
+
+      <div class="img-frame" style="margin-top: 14px; background: #fff;">
+        <img src="assets/demo/00_three_pillar_workflow.png" alt="Three-Pillar Agentic PhysicianAssist Workflow" />
+      </div>
+
+      <div class="slide-footer">
+        <span>Suite 1: Narrative Synthesizer &rarr; Suite 2: Questionnaire Tailoring Suite &rarr; Suite 3: Survey Assistant</span>
+        <span>Slide 6 / 15</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 7: DEMO JOURNEY & PATIENT PERSONA -->
+    <section class="slide" data-notes="Before we jump into the screens, meet our demo patient: John Doe, MRN 1001—a 47-year-old software engineer with severe migraines (MIDAS 35), TPN-dependent gastroparesis (45% 4-hr retention), hEDS, MCAS, and a new hematopathology report showing FLT3-ITD+ Acute Myeloid Leukemia. Let's trace his 4-stage journey.">
+      <div>
+        <div class="eyebrow">Live Demo Scenario &bull; MRN 1001</div>
+        <h2>Four-Stage Demo Journey: Patient John Doe (MRN 1001)</h2>
+        <p class="lead">Complex multi-system case: Severe Migraines (MIDAS 35), TPN-Dependent Gastroparesis, hEDS (Beighton 7/9), MCAS &amp; New FLT3-ITD+ AML Lab PDF.</p>
+      </div>
+
+      <div class="grid-2" style="grid-template-columns: repeat(4, 1fr); gap: 16px;">
+        <div class="card white top-blue">
+          <div class="badge-num">1</div>
+          <h3>Synthesize &amp; Audit</h3>
+          <p>Auto-populate MRN 1001 intake, generate 8 parallel sections with clickable citations, and inspect Vertex AI Audit KPIs.</p>
+        </div>
+        <div class="card white top-blue">
+          <div class="badge-num">2</div>
+          <h3>Weave Lab PDFs</h3>
+          <p>Stream hematopathology PDF in-browser and synthesize FLT3-ITD+ AML interpretation into the note.</p>
+        </div>
+        <div class="card white top-indigo">
+          <div class="badge-num" style="background: var(--indigo);">3</div>
+          <h3>Tailor &amp; HITL Approve</h3>
+          <p>Generate ADK Treatment Plan, select High-Priority forms, verify Retained &amp; AI-Suggested safety checks, and sync to GCS.</p>
+        </div>
+        <div class="card white top-emerald">
+          <div class="badge-num" style="background: var(--emerald);">4</div>
+          <h3>Conversational Intake</h3>
+          <p>Launch patient-facing ADK Survey Assistant with option chips, empathetic guidance, and voice/text input.</p>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Agentic-PhysicianAssist &bull; Live Walkthrough Overview</span>
+        <span>Slide 7 / 15</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 8: SUITE 1 - DASHBOARD & AUTO-POPULATE -->
+    <section class="slide" data-notes="Step 1 & 2 of the live demo: On the Clinical Notes Dashboard, click John Doe (MRN 1001). Inside Clinical Review, toggle Auto-Populate Questionnaire to ON in the right-hand Source Node panel, then click Run Note Generation Pipeline to trigger parallel Gemini 3.5 Flash synthesis.">
+      <div>
+        <div class="eyebrow">Suite 1 &bull; Steps 01–02</div>
+        <h2>Select Patient 1001 &amp; Trigger Parallel Synthesis</h2>
+      </div>
+
+      <div class="split-demo">
+        <div class="step-box">
+          <div class="callout">
+            <strong>1. Clinical Notes Dashboard</strong>
+            <span>Click the <b>John Doe (1001)</b> card showing 100% baseline intake completion.</span>
+          </div>
+          <div class="callout">
+            <strong>2. Auto-Populate Source Node</strong>
+            <span>Toggle <b>Auto-Populate Questionnaire &rarr; ON</b> in the right panel to load structured registry fields.</span>
+          </div>
+          <div class="callout">
+            <strong>3. Run Note Generation Pipeline</strong>
+            <span>Click the center blue button to launch 8 concurrent <code>asyncio.gather</code> Gemini 3.5 Flash + Grounding tasks.</span>
+          </div>
+        </div>
+        <div class="img-frame">
+          <img src="assets/demo/02_autopopulate_run_pipeline.png" alt="Auto-Populate and Run Note Generation Pipeline" />
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Suite 1: Narrative Synthesizer &bull; Parallel Pipeline Initialization</span>
+        <span>Slide 8 / 15</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 9: SUITE 1 - GROUNDED CLINICAL REPORT -->
+    <section class="slide" data-notes="Step 3: Within moments, 8 comprehensive clinical sections appear—from History of Present Illness to Nutritional Status and Hypermobility. Clicking any inline citation badge like [1] or [7] smoothly scrolls and highlights the exact raw field in the right-hand questionnaire panel.">
+      <div>
+        <div class="eyebrow">Suite 1 &bull; Step 03</div>
+        <h2>Grounded 8-Section Clinical Report &amp; Deep-Link Citations</h2>
+      </div>
+
+      <div class="split-demo">
+        <div class="step-box">
+          <div class="callout">
+            <strong>8 Clinical Domains Synthesized</strong>
+            <span>Browse HPI, ROS, Social, Medical, Nutritional/Functional, Systemic Hypermobility, Disability &amp; Infectious History.</span>
+          </div>
+          <div class="callout">
+            <strong>Score-Aware Medical Prose</strong>
+            <span>Automatically interprets clinical indices (<code>MIDAS 35</code>, <code>Beighton 7/9</code>, <code>PROMIS Fatigue 75.8</code>, <code>PAGI-QOL 1.8</code>).</span>
+          </div>
+          <div class="callout">
+            <strong>"Trust, but Verify" Citations</strong>
+            <span>Click any numbered badge (e.g. <b>[3]</b>, <b>[7]</b>) to highlight the exact source field via Discovery Engine Grounding.</span>
+          </div>
+        </div>
+        <div class="img-frame">
+          <img src="assets/demo/03_clinical_report_grounded.png" alt="Grounded Clinical Report with Inline Citations" />
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Suite 1: Narrative Synthesizer &bull; Discovery Engine Grounding</span>
+        <span>Slide 9 / 15</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 10: SUITE 1 - AI AUDIT -->
+    <section class="slide" data-notes="Step 4: Switch to the AI Audit tab. Vertex AI's Evaluation Task runs pointwise LLM-as-a-Judge checks across every generated section—surfacing Clinical Grounding percentage, Logic Coherence, Prose Fluency, and Overall Diagnostic Quality.">
+      <div>
+        <div class="eyebrow">Suite 1 &bull; Step 04</div>
+        <h2>Automated AI Audit (Vertex AI Evaluation Framework)</h2>
+      </div>
+
+      <div class="split-demo">
+        <div class="step-box">
+          <div class="callout">
+            <strong>Objective LLM-as-a-Judge KPIs</strong>
+            <span>Evaluates <b>Clinical Grounding (%)</b>, <b>Logic Coherence (/5)</b>, <b>Prose Fluency (/5)</b>, and <b>Overall Quality (/5)</b>.</span>
+          </div>
+          <div class="callout">
+            <strong>Section-Level Evidence Breakdown</strong>
+            <span>Visualizes per-section verification bars so physicians immediately spot sections needing closer review.</span>
+          </div>
+          <div class="callout">
+            <strong>Upgrade-Safe Governance</strong>
+            <span>Pointwise evaluation metrics safeguard clinical quality whenever prompts or foundation models are updated.</span>
+          </div>
+        </div>
+        <div class="img-frame">
+          <img src="assets/demo/04_ai_audit_evaluation.png" alt="AI Audit Evaluation Metrics" />
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Suite 1: Narrative Synthesizer &bull; Vertex AI Evaluation Task</span>
+        <span>Slide 10 / 15</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 11: SUITE 1 - LAB REPORTS & ONCOLOGY SYNTHESIS -->
+    <section class="slide" data-notes="Step 5 & 6: Click LAB REPORTS to view John Doe's hematopathology PDF directly in the viewport, then click Use Lab Report for Narrative. An Oncology Scribe extracts WBC 42.5, 24% myeloid blasts, and FLT3-ITD positivity, prepending an Oncology Lab Interpretation section to the note—ready to click Export to Survey Tailoring.">
+      <div>
+        <div class="eyebrow">Suite 1 &bull; Steps 05–06</div>
+        <h2>Ambient Lab PDF Synthesis &amp; Handoff to Tailoring</h2>
+      </div>
+
+      <div class="split-demo">
+        <div class="step-box">
+          <div class="callout">
+            <strong>Embedded Diagnostic PDF Viewport</strong>
+            <span>Streams pathology &amp; oncology PDFs (<code>sample_oncology.pdf</code>) directly alongside patient intake records.</span>
+          </div>
+          <div class="callout">
+            <strong>One-Click Oncology Scribe</strong>
+            <span>Clicking <b>Use Lab Report for Narrative</b> synthesizes <b>FLT3-ITD+ Acute Myeloid Leukemia</b> findings into the report.</span>
+          </div>
+          <div class="callout">
+            <strong>Seamless Suite Handoff</strong>
+            <span>Click <b>Export to Survey Tailoring</b> at top right to pass the complete clinical narrative to Suite 2.</span>
+          </div>
+        </div>
+        <div class="img-frame">
+          <img src="assets/demo/06_oncology_lab_synthesis.png" alt="Oncology Lab Interpretation Preprended to Clinical Note" />
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Suite 1 &rarr; Suite 2 Handoff &bull; Multimodal PDF + JSON Synthesis</span>
+        <span>Slide 11 / 15</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 12: SUITE 2 - TREATMENT PLAN & PRIORITY FORMS -->
+    <section class="slide" data-notes="Steps 7 & 8 in Suite 2 (Clinical Survey Intelligence): Two ADK agents kick in immediately. First, treatment_plan_agent formulates a Clinical Strategy & Treatment Plan—catching critical cross-specialty risks like stopping oral Ibuprofen in severe gastroparesis. Second, form_recommendation_agent pre-selects High and Medium Priority forms with clinical rationales.">
+      <div>
+        <div class="eyebrow indigo">Suite 2 &bull; Steps 07–08</div>
+        <h2>ADK Treatment Plan &amp; Priority Form Recommendation</h2>
+      </div>
+
+      <div class="split-demo">
+        <div class="step-box">
+          <div class="callout indigo">
+            <strong>ADK <code>treatment_plan_agent</code></strong>
+            <span>Synthesizes multi-disciplinary clinical strategy (AML urgency + hEDS/MCAS + non-oral route precautions for gastroparesis).</span>
+          </div>
+          <div class="callout indigo">
+            <strong>ADK <code>form_recommendation_agent</code></strong>
+            <span>Auto-selects <b>High</b> &amp; <b>Medium Priority</b> forms (e.g., <i>Review Systems</i>, <i>PROMIS</i>, <i>Medications</i>) with rationale.</span>
+          </div>
+          <div class="callout indigo">
+            <strong>Trigger Customization</strong>
+            <span>Coordinator reviews selected instruments and clicks <b>Trigger Questionnaire Customization</b>.</span>
+          </div>
+        </div>
+        <div class="img-frame">
+          <img src="assets/demo/07_treatment_plan_workspace.png" alt="Patient Analysis Workspace and AI-Generated Treatment Plan" />
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Suite 2: Questionnaire Tailoring Suite &bull; Google ADK Multi-Agent Orchestration</span>
+        <span>Slide 12 / 15</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 13: SUITE 2 - HITL QUESTION VERIFICATION -->
+    <section class="slide" data-notes="Steps 9 & 10: Inside Verify Questions (HITL), coordinators inspect Retained template questions (preserving underlying database field IDs), Dropped items with 1-to-1 rationales, and AI-Suggested precision questions—like screening for non-oral migraine medication tolerability, discontinuing oral Ibuprofen, or Lisinopril dry cough.">
+      <div>
+        <div class="eyebrow indigo">Suite 2 &bull; Steps 09–10</div>
+        <h2>Human-in-the-Loop (HITL) Precision Question Verification</h2>
+      </div>
+
+      <div class="split-demo">
+        <div class="step-box">
+          <div class="callout indigo">
+            <strong>Retained &amp; Dropped Diffs</strong>
+            <span>Keeps relevant template questions with original <code>field_name</code> IDs intact while filtering out irrelevant items.</span>
+          </div>
+          <div class="callout indigo">
+            <strong>AI-Suggested Safety Checks</strong>
+            <span>Generates targeted gap questions (e.g., non-oral migraine rescue side effects, oral Ibuprofen cessation, Lisinopril cough).</span>
+          </div>
+          <div class="callout indigo">
+            <strong>Treatment Context Guardrail</strong>
+            <span>Right-hand panel keeps the clinical care plan visible while coordinators review, export JSON, or approve.</span>
+          </div>
+        </div>
+        <div class="img-frame">
+          <img src="assets/demo/10_hitl_ai_suggested_questions.png" alt="HITL Verification of AI-Suggested Clinical Questions" />
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Suite 2: Questionnaire Tailoring Suite &bull; Clinician &amp; Coordinator Governance</span>
+        <span>Slide 13 / 15</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 14: SUITE 2 -> 3 - GCS DEPLOY & SURVEY ASSISTANT -->
+    <section class="slide" data-notes="Steps 11 & 12: Clicking HITL Approve & Deploy Survey writes the custom JSON to Google Cloud Storage and activates the Launch Chatbot Portal link. When John opens the Intelligent Survey Assistant and clicks 'Yes, let's start!', the ADK agent retrieves his custom survey from GCS and guides him empathetically one question at a time via option chips, voice, or text.">
+      <div>
+        <div class="eyebrow emerald">Suite 3 &bull; Steps 11–12</div>
+        <h2>GCS Sync &amp; Multimodal Intelligent Survey Assistant</h2>
+      </div>
+
+      <div class="split-demo">
+        <div class="step-box">
+          <div class="callout emerald">
+            <strong>GCS &amp; ADK Synchronization</strong>
+            <span><b>HITL Approve &amp; Deploy Survey</b> persists <code>1001_&lt;survey_id&gt;.json</code> to Cloud Storage and generates a patient link.</span>
+          </div>
+          <div class="callout emerald">
+            <strong>Zero-IAM Patient Access</strong>
+            <span>Patients launch directly via browser URL bound to <code>MRN: 1001</code>—no corporate cloud identity required.</span>
+          </div>
+          <div class="callout emerald">
+            <strong>Guided Voice, Text &amp; Chips</strong>
+            <span>ADK <code>Patient_Survey_Assistant</code> asks one question at a time with option pills, plain-language clarifications &amp; empathy.</span>
+          </div>
+        </div>
+        <div class="img-frame">
+          <img src="assets/demo/12_intelligent_survey_assistant.png" alt="Intelligent Survey Assistant Conversational Intake" />
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <span>Suite 3: Intelligent Survey Assistant &bull; Multimodal Conversational Intake</span>
+        <span>Slide 14 / 15</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 15: SUMMARY & CALL TO ACTION -->
+    <section class="slide" data-notes="To wrap up: Agentic-PhysicianAssist unites grounded clinical note generation, multi-agent questionnaire tailoring, and empathetic patient intake on Vertex AI and Google ADK—giving physicians back pajama time, cutting patient survey fatigue, and scaling cleanly across any medical specialty with zero rebuild.">
+      <div>
+        <div class="eyebrow">Summary &amp; Next Steps</div>
+        <h2>Transforming Clinical Documentation &amp; Pre-Visit Intake</h2>
+        <p class="lead">Clinician-controlled, grounded in source truth, and infinitely adaptable across medical specialties.</p>
+      </div>
+
+      <div class="grid-3">
+        <div class="card white top-blue">
+          <h3>Grounded Speed</h3>
+          <p>8-section parallel clinical note synthesis + diagnostic PDF interpretation with clickable source citations and Vertex AI Audit KPIs.</p>
+        </div>
+        <div class="card white top-indigo">
+          <h3>Precision HITL Tailoring</h3>
+          <p>Google ADK multi-agent pipeline aligns follow-up surveys to active treatment plans—retaining, dropping, and adding risk checks.</p>
+        </div>
+        <div class="card white top-emerald">
+          <h3>Zero-Fatigue Patient UX</h3>
+          <p>Cloud Storage-synced conversational assistant delivers personalized voice, text, and chip-guided intake for focused visits.</p>
+        </div>
+      </div>
+
+      <div class="card" style="flex-direction: row; align-items: center; justify-content: space-between; padding: 16px 24px; background: var(--brand-light); border-color: #bae6fd;">
+        <div>
+          <strong style="font-size: 14px; color: var(--ink);">Explore the Live Demo &amp;Presenter Guide</strong>
+          <p style="font-size: 12.5px; color: var(--muted); margin-top: 2px;">Demospace: <code>https://demospace.corp.goog/demo/Agentic-PhysicianAssist/2257</code> &bull; Full Walkthrough: <code>docs/DEMO_GUIDE.md</code></p>
+        </div>
+        <span style="background: var(--brand); color: #fff; font-weight: 800; font-size: 12px; padding: 8px 16px; border-radius: 10px;">Agentic-PhysicianAssist</span>
+      </div>
+
+      <div class="slide-footer">
+        <span>Thank You &bull; Q&amp;A</span>
+        <span>Slide 15 / 15</span>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Speaker Notes Drawer -->
+  <div id="notesDrawer" class="notes-drawer">
+    <strong>Presenter Talk Track:</strong> <span id="notesContent"></span>
+  </div>
+
+  <!-- Bottom Controls -->
+  <div class="controls">
+    <div class="btn-group">
+      <button class="ctrl-btn" onclick="prevSlide()">&#8592; Prev</button>
+      <button class="ctrl-btn" onclick="nextSlide()">Next &#8594;</button>
+      <span id="slideCounter" style="margin-left: 10px; font-weight: 700;">1 / 15</span>
+    </div>
+
+    <div class="progress-wrap">
+      <div id="progressBar" class="progress-bar" style="width: 6.66%;"></div>
+    </div>
+
+    <div class="btn-group">
+      <button class="ctrl-btn" onclick="toggleNotes()">Speaker Notes (N)</button>
+      <button class="ctrl-btn" onclick="toggleFullscreen()">Fullscreen (F)</button>
+      <button class="ctrl-btn" onclick="window.print()">Export PDF</button>
+    </div>
+  </div>
+
+  <script>
+    const slides = Array.from(document.querySelectorAll('.slide'));
+    const counter = document.getElementById('slideCounter');
+    const progress = document.getElementById('progressBar');
+    const notesDrawer = document.getElementById('notesDrawer');
+    const notesContent = document.getElementById('notesContent');
+    let current = 0;
+
+    function render() {
+      slides.forEach((s, idx) => s.classList.toggle('active', idx === current));
+      counter.textContent = `${current + 1} / ${slides.length}`;
+      progress.style.width = `${((current + 1) / slides.length) * 100}%`;
+      notesContent.textContent = slides[current].getAttribute('data-notes') || '';
+    }
+
+    function nextSlide() {
+      if (current < slides.length - 1) { current++; render(); }
+    }
+
+    function prevSlide() {
+      if (current > 0) { current--; render(); }
+    }
+
+    function toggleNotes() {
+      notesDrawer.classList.toggle('open');
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen();
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); nextSlide(); }
+      if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); prevSlide(); }
+      if (e.key === 'n' || e.key === 'N') toggleNotes();
+      if (e.key === 'f' || e.key === 'F') toggleFullscreen();
+    });
+
+    render();
+  </script>
+</body>
+</html>
