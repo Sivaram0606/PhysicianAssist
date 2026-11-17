@@ -243,60 +243,64 @@ async def call_gemini_vertex(section_name: str, patient_record: dict):
             fact_lookup[fname] = f.fact_text
 
         # 3. CALL GROUNDING API (Step 1: Identify Claims)
-        grounding_request = discoveryengine.CheckGroundingRequest(
-            grounding_config=grounding_config_path,
-            answer_candidate=narrative,
-            facts=facts,
-            grounding_spec=discoveryengine.CheckGroundingSpec(citation_threshold=0.1),
-        )
-        
-        grounding_resp = await asyncio.to_thread(grounding_client.check_grounding, request=grounding_request)
-        claims = sorted(grounding_resp.claims, key=lambda x: x.start_pos, reverse=True)
-        
-        # 4. REFINER LLM CALL (Step 2: Correct the Mapping)
-        final_text = narrative
-
-        for i, claim in enumerate(claims):
-            claim_text = claim.claim_text.strip()
-            claim_end = claim.end_pos # Corrected variable name
-            
-            # --- THE REFINER LLM CALL ---
-            # We ask Gemini to look at the claim and pick the best field from the keys
-            refine_prompt = f"""
-            Task: Match the following clinical claim to the most appropriate Field ID.
-            Claim: "{claim_text}"
-            
-            Available Fields & Data:
-            {json.dumps(patient_record, indent=2)}
-            
-            Clinical Interpreters (Use these to verify if the claim matches the score):
-            - PROMIS-29 T-Scores: Mean is 50. >60 is high, >70 is 'very much' (e.g., severe fatigue).
-            - MIDAS Score: 0-5 (Minimal), 6-10 (Mild), 11-20 (Moderate), 21+ (Severe Disability).
-            - PAGI-QOL: Range 0-5. Lower scores indicate worse quality of life.
-            - Beighton Score: Range 0-9. Higher score indicates higher hypermobility.
-            
-            Rules:
-            1. Respond ONLY with the Field ID (the key).
-            2. If the claim describes a 'severity' found in a score (e.g., 'very much fatigued'), map it to the corresponding score field (e.g., 'promis_fatigue_tscore').
-            3. If the claim mentions a medical device or intervention (e.g., 'TPN' or 'G-tube'), map it to 'nutrition_support'.
-            4. If no field matches, respond with 'unknown'.
-            """
-            
-            refiner_res = await client.aio.models.generate_content(
-                model=AGENTIC_PHYSICIANASSIST_MODEL,
-                contents=refine_prompt
+        try:
+            grounding_request = discoveryengine.CheckGroundingRequest(
+                grounding_config=grounding_config_path,
+                answer_candidate=narrative,
+                facts=facts,
+                grounding_spec=discoveryengine.CheckGroundingSpec(citation_threshold=0.1),
             )
-            best_field = refiner_res.text.strip()
+            
+            grounding_resp = await asyncio.to_thread(grounding_client.check_grounding, request=grounding_request)
+            claims = sorted(grounding_resp.claims, key=lambda x: x.start_pos, reverse=True)
+            
+            # 4. REFINER LLM CALL (Step 2: Correct the Mapping)
+            final_text = narrative
 
-            # Avoid mapping to generic IDs unless absolutely necessary
-            if best_field == "unknown" or best_field not in patient_record:
-                continue
+            for i, claim in enumerate(claims):
+                claim_text = claim.claim_text.strip()
+                claim_end = claim.end_pos # Corrected variable name
+                
+                # --- THE REFINER LLM CALL ---
+                # We ask Gemini to look at the claim and pick the best field from the keys
+                refine_prompt = f"""
+                Task: Match the following clinical claim to the most appropriate Field ID.
+                Claim: "{claim_text}"
+                
+                Available Fields & Data:
+                {json.dumps(patient_record, indent=2)}
+                
+                Clinical Interpreters (Use these to verify if the claim matches the score):
+                - PROMIS-29 T-Scores: Mean is 50. >60 is high, >70 is 'very much' (e.g., severe fatigue).
+                - MIDAS Score: 0-5 (Minimal), 6-10 (Mild), 11-20 (Moderate), 21+ (Severe Disability).
+                - PAGI-QOL: Range 0-5. Lower scores indicate worse quality of life.
+                - Beighton Score: Range 0-9. Higher score indicates higher hypermobility.
+                
+                Rules:
+                1. Respond ONLY with the Field ID (the key).
+                2. If the claim describes a 'severity' found in a score (e.g., 'very much fatigued'), map it to the corresponding score field (e.g., 'promis_fatigue_tscore').
+                3. If the claim mentions a medical device or intervention (e.g., 'TPN' or 'G-tube'), map it to 'nutrition_support'.
+                4. If no field matches, respond with 'unknown'.
+                """
+                
+                refiner_res = await client.aio.models.generate_content(
+                    model=AGENTIC_PHYSICIANASSIST_MODEL,
+                    contents=refine_prompt
+                )
+                best_field = refiner_res.text.strip()
 
-            # INJECT TAG
-            citation_tag = f' <span className="citation" data-field="{best_field}">[{len(claims)-i}]</span>'
-            final_text = final_text[:claim_end] + citation_tag + final_text[claim_end:]
+                # Avoid mapping to generic IDs unless absolutely necessary
+                if best_field == "unknown" or best_field not in patient_record:
+                    continue
 
-        return final_text
+                # INJECT TAG
+                citation_tag = f' <span className="citation" data-field="{best_field}">[{len(claims)-i}]</span>'
+                final_text = final_text[:claim_end] + citation_tag + final_text[claim_end:]
+
+            return final_text
+        except Exception as ground_err:
+            print(f"Warning: Grounding citation check skipped for '{section_name}' ({ground_err}). Returning ungrounded narrative.")
+            return narrative
 
     except Exception as e:
         print(f"CRITICAL ERROR in {section_name}: {e}", flush=True)

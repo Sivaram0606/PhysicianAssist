@@ -92,7 +92,7 @@ An advanced, high-performance full-stack clinical automation and questionnaire t
 Authenticate with Google Cloud and configure Application Default Credentials (ADC) for Vertex AI access:
 ```bash
 gcloud auth application-default login
-gcloud config set project agentic-physicianassist-2257
+gcloud config set project my-project-ssi-364811
 ```
 
 ---
@@ -109,7 +109,7 @@ docker build -t agentic-physicianassist-app .
 
 # 2. Run the container with local ADC mounted
 docker run -p 8000:8000 \
-  -e GOOGLE_CLOUD_PROJECT=agentic-physicianassist-2257 \
+  -e GOOGLE_CLOUD_PROJECT=my-project-ssi-364811 \
   -e GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json \
   -v ~/.config/gcloud/application_default_credentials.json:/root/.config/gcloud/application_default_credentials.json:ro \
   agentic-physicianassist-app
@@ -188,7 +188,7 @@ Key outputs:
 Trigger automated builds from the workspace root:
 
 ```bash
-gcloud builds submit --config=cloudbuild.yaml --project=agentic-physicianassist-2257
+gcloud builds submit --config=cloudbuild.yaml --project=my-project-ssi-364811
 ```
 
 ---
@@ -199,10 +199,10 @@ All runtime settings read from environment variables with sensible defaults:
 
 | Variable | Default Value | Description |
 | :--- | :--- | :--- |
-| `GOOGLE_CLOUD_PROJECT` | `agentic-physicianassist-2257` | Active GCP Project ID |
+| `GOOGLE_CLOUD_PROJECT` | `my-project-ssi-364811` | Active GCP Project ID |
 | `GCP_REGION` | `us-central1` | Deployment Region |
 | `GOOGLE_CLOUD_LOCATION` | `global` | Vertex AI API endpoint location |
-| `AGENTIC_PHYSICIANASSIST_PROJECT_ID` | `agentic-physicianassist-2257` | Scribe synthesis GCP project |
+| `AGENTIC_PHYSICIANASSIST_PROJECT_ID` | `my-project-ssi-364811` | Scribe synthesis GCP project |
 | `AGENTIC_PHYSICIANASSIST_LOCATION` | `global` | Synthesis API location |
 | `AGENTIC_PHYSICIANASSIST_MODEL` | `gemini-3.5-flash` | Gemini foundation model |
 | `SURVEY_BUCKET_NAME` | `clinical-chatbot-pocprojects` | GCS bucket for survey JSON storage |

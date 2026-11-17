@@ -4,14 +4,17 @@ from pathlib import Path
 # Base workspace path (resolve relative to config/settings.py)
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Ensure standard TLS endpoints (aiplatform.googleapis.com) are used instead of broken async mTLS on macOS
+os.environ.setdefault("GOOGLE_API_USE_CLIENT_CERTIFICATE", "false")
+
 # Centralized GCP Credentials & Location Defaults
-GOOGLE_CLOUD_PROJECT = os.getenv("GOOGLE_CLOUD_PROJECT") or "agentic-physicianassist-2257"
+GOOGLE_CLOUD_PROJECT = os.getenv("GOOGLE_CLOUD_PROJECT") or "my-project-ssi-364811"
 os.environ["GOOGLE_CLOUD_PROJECT"] = GOOGLE_CLOUD_PROJECT
 GCP_REGION = os.getenv("GCP_REGION") or "us-central1"
 GOOGLE_CLOUD_LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION") or "global"
 
 # 1. Agentic-PhysicianAssist Synthesis Service Configurations
-AGENTIC_PHYSICIANASSIST_PROJECT_ID = os.getenv("AGENTIC_PHYSICIANASSIST_PROJECT_ID") or "agentic-physicianassist-2257"
+AGENTIC_PHYSICIANASSIST_PROJECT_ID = os.getenv("AGENTIC_PHYSICIANASSIST_PROJECT_ID") or "my-project-ssi-364811"
 AGENTIC_PHYSICIANASSIST_LOCATION = os.getenv("AGENTIC_PHYSICIANASSIST_LOCATION") or "global"
 AGENTIC_PHYSICIANASSIST_MODEL = os.getenv("AGENTIC_PHYSICIANASSIST_MODEL") or "gemini-3.5-flash"
 
@@ -29,7 +32,7 @@ ASSISTANT_MODEL_LOCATION = os.getenv("ASSISTANT_MODEL_LOCATION", "global")
 AGENT_DISPLAY_NAME = os.getenv("AGENT_DISPLAY_NAME") or "Patient-Survey-Assistant"
 STAGING_BUCKET = os.getenv("STAGING_BUCKET", f"gs://{SURVEY_BUCKET_NAME}")
 GCS_MCP_URL = os.getenv("GCS_MCP_URL", "https://storage.googleapis.com/storage/mcp")
-SERVICE_ACCOUNT = os.getenv("SERVICE_ACCOUNT", "anaphor@agentic-physicianassist-2257.iam.gserviceaccount.com")
+SERVICE_ACCOUNT = os.getenv("SERVICE_ACCOUNT", "anaphor@my-project-ssi-364811.iam.gserviceaccount.com")
 MCP_SERVER_NAME = os.getenv(
     "MCP_SERVER_NAME", 
     "agentregistry-00000000-0000-0000-8c4c-b4550d010e13"

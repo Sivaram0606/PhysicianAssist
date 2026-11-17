@@ -1,5 +1,11 @@
 import os
 import sys
+
+# Disable mTLS client-certificate endpoint rewrite (aiplatform.mtls.googleapis.com),
+# which breaks async google-genai (aiohttp) requests on corporate macOS environments.
+os.environ.setdefault("GOOGLE_API_USE_CLIENT_CERTIFICATE", "false")
+
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -10,8 +16,19 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 if current_dir not in sys.path:
     sys.path.insert(0, current_dir)
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    port = int(os.getenv("PORT", 8001))
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173/")
+    if os.path.isdir(os.path.join(current_dir, "frontend", "dist")):
+        print(f"➜  App UI & API:  http://localhost:{port}/", flush=True)
+    else:
+        print(f"➜  Frontend UI:   {frontend_url}", flush=True)
+        print(f"➜  Backend Docs:  http://localhost:{port}/docs", flush=True)
+    yield
+
 # Initialize master FastAPI instance
-app = FastAPI(title="Clinical Intelligence & Questionnaire API Platform")
+app = FastAPI(title="Clinical Intelligence & Questionnaire API Platform", lifespan=lifespan)
 
 # Enable CORS for the local React App development server
 app.add_middleware(
@@ -44,7 +61,14 @@ if os.path.isdir(frontend_dist):
     app.mount("/", StaticFiles(directory=frontend_dist, html=True), name="frontend")
     print(f"Unified Server: Serving static frontend UI from {frontend_dist}")
 else:
-    print(f"Warning: Frontend build directory not found at {frontend_dist}. Run 'npm run build' in ./frontend.")
+    print("Unified Server: API ready on port 8001 (Frontend UI served by Vite at http://localhost:5173 in dev mode).")
+
+    @app.get("/")
+    def dev_root():
+        return {
+            "status": "ok",
+            "message": "Agentic-PhysicianAssist Backend API is running. Open http://localhost:5173 for the Frontend UI."
+        }
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8001))

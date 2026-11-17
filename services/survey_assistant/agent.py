@@ -87,22 +87,37 @@ class GlobalGemini(Gemini):
         return Client(vertexai=True, project=config.GCP_PROJECT_ID, location=config.MODEL_LOCATION)
 
 
-# Initialize AgentRegistry to retrieve the authenticated McpToolset
-registry = AgentRegistry(
-    project_id=config.GCP_PROJECT_ID,
-    location="global"
-)
-
-mcp_toolset = registry.get_mcp_toolset(
-    f"projects/{config.GCP_PROJECT_ID}/locations/global/mcpServers/{config.MCP_SERVER_NAME}"
-)
+# Initialize AgentRegistry to retrieve the authenticated McpToolset (optional for local dev)
+mcp_toolset = None
+try:
+    registry = AgentRegistry(
+        project_id=config.GCP_PROJECT_ID,
+        location="global"
+    )
+    mcp_toolset = registry.get_mcp_toolset(
+        f"projects/{config.GCP_PROJECT_ID}/locations/global/mcpServers/{config.MCP_SERVER_NAME}"
+    )
+except Exception:
+    print(f"Info: Optional AgentRegistry MCP '{config.MCP_SERVER_NAME}' not configured in '{config.GCP_PROJECT_ID}'; using built-in get_survey_questions tool.")
 
 def get_survey_questions(mrn: str, survey_id: str) -> str:
     """
-    Retrieve the customized survey questions for a patient directly from Google Cloud Storage (GCS).
+    Retrieve the customized survey questions for a patient from local storage or Google Cloud Storage (GCS).
     Use this tool to fetch the customized survey using the patient's mrn and survey_id.
     """
     import json
+    local_survey_path = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..", "..", "data", "deployed_surveys", f"{mrn}_{survey_id}.json")
+    )
+    if os.path.exists(local_survey_path):
+        try:
+            with open(local_survey_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            deployed_qs = data.get("deployed_questions", [])
+            return json.dumps(deployed_qs, indent=2)
+        except Exception as local_err:
+            print(f"Warning: Failed reading local survey file {local_survey_path}: {local_err}")
+
     from google.cloud import storage
     try:
         from settings import SURVEY_BUCKET_NAME
@@ -117,19 +132,20 @@ def get_survey_questions(mrn: str, survey_id: str) -> str:
             deployed_qs = data.get("deployed_questions", [])
             return json.dumps(deployed_qs, indent=2)
             
-        return f"No survey found in GCS bucket '{SURVEY_BUCKET_NAME}' for the given MRN {mrn} and Survey ID {survey_id}."
+        return f"No survey found locally or in GCS bucket '{SURVEY_BUCKET_NAME}' for the given MRN {mrn} and Survey ID {survey_id}."
     except Exception as e:
-        return f"Error reading survey from GCS: {str(e)}"
+        return f"Error reading survey: {str(e)}"
 
-# 2. Root Patient Patient Survey Assistant Agent
+agent_tools = [get_survey_questions]
+if mcp_toolset is not None:
+    agent_tools.append(mcp_toolset)
+
+# 2. Root Patient Survey Assistant Agent
 root_agent = LlmAgent(
     name="Patient_Survey_Assistant",
     model=GlobalGemini(model=config.MODEL_NAME),
     description=config.get_prompt(config.SURVEY_DESCRIPTION_FILE),
     sub_agents=[],
-    instruction=config.get_prompt(config.SURVEY_INSTRUCTION_FILE) + "\n\nUse the 'get_survey_questions' tool to fetch the customized survey from Google Cloud Storage using the patient's mrn and survey_id.",
-    tools=[
-        get_survey_questions,
-        mcp_toolset,
-    ],
+    instruction=config.get_prompt(config.SURVEY_INSTRUCTION_FILE) + "\n\nUse the 'get_survey_questions' tool to fetch the customized survey using the patient's mrn and survey_id.",
+    tools=agent_tools,
 )

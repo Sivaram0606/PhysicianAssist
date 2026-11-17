@@ -216,53 +216,51 @@ async def deploy_survey(payload: DeployPayload):
         # Generate the survey ID
         survey_id = str(uuid.uuid4())
         survey_json_str = json.dumps(payload.survey_data, indent=2)
-        
-        # Enforce strict, mandatory GCS upload if SURVEY_BUCKET_NAME is configured
-        if not SURVEY_BUCKET_NAME:
-            raise HTTPException(
-                status_code=500,
-                detail="GCS Deploy Failed: SURVEY_BUCKET_NAME is not configured in settings.py"
-            )
-            
-        try:
-            from google.cloud import storage
-            gcs_client = storage.Client()
-            bucket = gcs_client.bucket(SURVEY_BUCKET_NAME)
-            gcs_key = f"deployed_surveys/{payload.mrn}_{survey_id}.json"
-            blob = bucket.blob(gcs_key)
-            
-            # Upload directly from memory
-            blob.upload_from_string(survey_json_str, content_type="application/json")
-            gcs_uri = f"gs://{SURVEY_BUCKET_NAME}/{gcs_key}"
-            gcs_message = f"Survey deployed successfully to GCS bucket '{SURVEY_BUCKET_NAME}'"
-            print(f"GCS Deploy: Uploaded {gcs_key} successfully to {SURVEY_BUCKET_NAME}")
 
-            # Format the URL exactly like the template requested in config
-            dynamic_link = DYNAMIC_LINK_TEMPLATE.format(
-                agent_id=AGENT_ID,
-                survey_id=survey_id
-            )
-            
-            return {
-                "status": "success",
-                "message": gcs_message,
-                "gcs_uri": gcs_uri,
-                "dynamic_link": dynamic_link,
-                "survey_id": survey_id
-            }
-        except Exception as gcs_err:
-            print(f"CRITICAL: GCS Deploy Failed: {gcs_err}")
-            raise HTTPException(
-                status_code=500,
-                detail=f"GCS Deploy Failed: Could not upload to bucket '{SURVEY_BUCKET_NAME}'. Exact error: {str(gcs_err)}. Please verify your SURVEY_BUCKET_NAME in settings.py and ensure Google Cloud credentials have storage.objects.create permissions."
-            )
+        # Always save a local copy so local dev works even without GCS bucket permissions
+        local_surveys_dir = os.path.join(DATA_DIR, "deployed_surveys")
+        os.makedirs(local_surveys_dir, exist_ok=True)
+        local_survey_path = os.path.join(local_surveys_dir, f"{payload.mrn}_{survey_id}.json")
+        with open(local_survey_path, "w", encoding="utf-8") as f:
+            f.write(survey_json_str)
+
+        dynamic_link = DYNAMIC_LINK_TEMPLATE.format(
+            agent_id=AGENT_ID,
+            survey_id=survey_id
+        )
+
+        # Attempt GCS upload if SURVEY_BUCKET_NAME is configured; fall back to local storage on permission/bucket error
+        if SURVEY_BUCKET_NAME:
+            try:
+                from google.cloud import storage
+                gcs_client = storage.Client()
+                bucket = gcs_client.bucket(SURVEY_BUCKET_NAME)
+                gcs_key = f"deployed_surveys/{payload.mrn}_{survey_id}.json"
+                blob = bucket.blob(gcs_key)
+                
+                blob.upload_from_string(survey_json_str, content_type="application/json")
+                gcs_uri = f"gs://{SURVEY_BUCKET_NAME}/{gcs_key}"
+                gcs_message = f"Survey deployed successfully to GCS bucket '{SURVEY_BUCKET_NAME}'"
+                print(f"GCS Deploy: Uploaded {gcs_key} successfully to {SURVEY_BUCKET_NAME}")
+                
+                return {
+                    "status": "success",
+                    "message": gcs_message,
+                    "gcs_uri": gcs_uri,
+                    "dynamic_link": dynamic_link,
+                    "survey_id": survey_id
+                }
+            except Exception as gcs_err:
+                print(f"Warning: GCS upload to '{SURVEY_BUCKET_NAME}' skipped ({gcs_err}). Using local storage at {local_survey_path}.")
+
+        return {
+            "status": "success",
+            "message": f"Survey deployed locally to data/deployed_surveys/{payload.mrn}_{survey_id}.json",
+            "gcs_uri": f"file://{local_survey_path}",
+            "dynamic_link": dynamic_link,
+            "survey_id": survey_id
+        }
     except HTTPException:
-        # Re-raise explicit HTTP exceptions from inner blocks
-        raise
-    except Exception as e:
-        return {"status": "error", "message": str(e)}
-    except HTTPException:
-        # Re-raise explicit HTTP exceptions from inner blocks
         raise
     except Exception as e:
         return {"status": "error", "message": str(e)}

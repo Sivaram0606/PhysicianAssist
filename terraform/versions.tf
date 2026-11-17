@@ -3,7 +3,7 @@ terraform {
 
   # Shared remote state & automatic state locking (.tflock) in Google Cloud Storage
   backend "gcs" {
-    bucket = "agentic-physicianassist-2257-tfstate"
+    bucket = "my-project-ssi-364811-tfstate"
     prefix = "agentic-physicianassist/state"
   }
 

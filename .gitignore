@@ -20,10 +20,11 @@ mayo_questionaire_agent.egg-info/
 UNKNOWN.egg-info/
 *.egg-info/
 
-# ADK tools
+# ADK tools & local deployed surveys
 .adk/
 .adk-ignore
 session.db
+data/deployed_surveys/
 
 # Workspace instructions
 GEMINI.md

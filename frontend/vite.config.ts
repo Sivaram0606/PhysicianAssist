@@ -10,6 +10,7 @@ export default defineConfig(({ mode }) => {
         'process.env.API_KEY' : JSON.stringify('api-key-this-is-not-used-can-be-ignored!'),
       },
       server: {
+        port: 5173,
         proxy: {
           // 1. Agentic-PhysicianAssist Synthesizer Backend (running on Port 8001 to avoid clash)
           '/api/patients': 'http://localhost:8001',
@@ -25,7 +26,7 @@ export default defineConfig(({ mode }) => {
       plugins: react(),
       resolve: {
         alias: {
-          '@': path.resolve(__dirname, '.'),
+          '@': path.resolve(import.meta.dirname ?? __dirname, '.'),
         }
       }
     };
