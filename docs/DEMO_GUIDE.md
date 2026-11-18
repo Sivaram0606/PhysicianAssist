@@ -15,7 +15,8 @@
 | :--- | :--- | :--- |
 | **1. Patient Narratives** | Turns lengthy patient intake questionnaires and unstructured clinical history into structured, medically dense narratives with inline citations (`[1]`, `[2]`) and automated confidence/audit scores. | Clinicians can click any claim to highlight the exact underlying source field (*"Trust, but Verify"*). |
 | **2. Physician Notes** | Drafts multi-domain clinical notes (8 core clinical sections + ambient hematopathology/oncology lab PDF synthesis) ready for physician review and sign-off. | High-concurrency generation (`asyncio.gather` + Gemini 3.5 Flash) synthesizes all 8 sections simultaneously. |
-| **3. Next-Visit Questionnaires & Survey Assistant** | Generates personalized follow-up questionnaires—retaining relevant items, dropping non-applicable ones, and suggesting precision safety questions—paired with a multimodal voice/text **Intelligent Survey Assistant** for patients. | Eliminates patient survey fatigue while ensuring critical medication and symptom risks are captured pre-visit. |
+| **3. AI Treatment Plan + Physician HITL** | Synthesizes a cross-specialty clinical care strategy from the narrative & lab evidence, paired with an interactive **Physician HITL Review, Override & Sign-Off** workspace. | Physicians can edit the AI plan, add clinical directives/addenda, and attest before downstream survey generation. |
+| **4. Next-Visit Questionnaires & Survey Assistant** | Generates personalized follow-up questionnaires—retaining relevant items, dropping non-applicable ones, and suggesting precision safety questions—paired with a multimodal voice/text **Intelligent Survey Assistant** for patients. | Eliminates patient survey fatigue while ensuring physician-verified treatment risks are captured pre-visit. |
 
 ---
 
@@ -159,12 +160,16 @@ Having quick command of John Doe's clinical profile makes your narration sound a
 
 ---
 
-### Act 2 — Suite 2 (Part A): ADK Treatment Plan & Intelligent Form Selection
+### Act 2 — Suite 2 (Part A): AI-Generated Treatment Plan (Physician HITL) & Intelligent Form Selection
 
-#### Step 7: Review the `AI-Generated Treatment Plan` & Patient Dossier
-- **Where to Click:** Observe Stage 2 (**AI Analysis & Select**) in the **Patient Analysis Workspace**; optionally click **View Patient Narrative (1)** to inspect the handed-off dossier.
-- **What Happens:** The ADK `treatment_plan_agent` synthesizes an actionable **Clinical Strategy & Treatment Plan**—flagging both urgent oncologic priorities (FLT3-ITD+ AML) and critical comorbidity interactions (e.g., discontinuing oral Ibuprofen 400mg and oral migraine meds because severe gastroparesis compromises absorption and irritates gastric mucosa).
-- **Talk Track:** *"Before picking a single survey question, our ADK `treatment_plan_agent` formulates a clinical care strategy. It catches cross-specialty interactions—for instance, recognizing that oral Ibuprofen is unsafe and poorly absorbed in a TPN-dependent gastroparesis patient."*
+#### Step 7: Review, Edit & Sign Off on the `AI-Generated Treatment Plan` (Physician HITL)
+- **Where to Click:**
+  1. Observe Stage 2 (**Treatment Plan (HITL)**) in the **Patient Analysis Workspace**, initially marked **`Pending Physician HITL`**.
+  2. Click **`Review & Edit (HITL)`** inside the **AI-Generated Treatment Plan** card.
+  3. Click one or more **Quick-Insert Clinical Directives** (e.g., `+ Urgent Hematology Co-Mgmt (FLT3+ AML)`, `+ Hold Oral NSAIDs (Gastroparesis) → Intranasal Triptan`) or enter custom physician overrides in the **Physician Clinical Overrides & Directives (HITL Addendum)** box, and optionally refine the Markdown plan directly.
+  4. Click **`Save & HITL Sign-Off Plan`** (or **`HITL Approve & Sign Plan`**).
+- **What Happens:** The ADK `treatment_plan_agent` synthesizes an initial cross-specialty care strategy; the physician reviews, injects authoritative clinical overrides, and signs off (`Dr. Demo User, MD`). The card badge flips to **`Physician HITL Verified`**, Step 2 marks complete, and the verified plan + physician addendum are locked in as the clinical context passed to downstream questionnaire tailoring.
+- **Talk Track:** *"AI drafts the cross-specialty care strategy—catching interactions like oral Ibuprofen risk in severe gastroparesis alongside newly detected FLT3-ITD+ AML—but the physician stays in full command. With our Physician HITL workbench, Dr. Demo User adds targeted clinical overrides, signs off on the treatment plan, and locks those exact directives into the follow-up survey generator."*
 
 ![Step 7 — Patient Analysis Workspace & Treatment Plan](assets/demo/07_treatment_plan_workspace.png)
 

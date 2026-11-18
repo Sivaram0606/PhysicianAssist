@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Loader2, Info, CheckSquare, Square, Play, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
+import { FileText, Loader2, Info, CheckSquare, Square, Play, Sparkles, ChevronDown, ChevronUp, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { NarrativeEntry, TailoredQuestionnaireResult } from '../types';
 
 interface AvailableFormsProps {
   mrn: string;
   narratives: NarrativeEntry[];
   treatmentPlan: string | null;
+  isPlanApproved?: boolean;
   aiRecommendations?: any[];
   onQuestionnaireGenerated: (result: TailoredQuestionnaireResult, templateId: string) => void;
 }
@@ -24,6 +25,7 @@ export const AvailableForms: React.FC<AvailableFormsProps> = ({
   mrn, 
   narratives, 
   treatmentPlan, 
+  isPlanApproved = false,
   aiRecommendations = [], 
   onQuestionnaireGenerated 
 }) => {
@@ -253,8 +255,32 @@ export const AvailableForms: React.FC<AvailableFormsProps> = ({
 
           {/* Trigger Pipeline Button */}
           {selectedForms.size > 0 && (
-            <div className="mt-5 pt-4 border-t border-slate-100">
+            <div className="mt-5 pt-4 border-t border-slate-100 space-y-3">
+              <div className={`flex items-center justify-between text-xs px-3.5 py-2.5 rounded-xl border ${
+                isPlanApproved
+                  ? 'bg-emerald-50/70 border-emerald-200 text-emerald-800'
+                  : 'bg-amber-50/70 border-amber-200 text-amber-800'
+              }`}>
+                <span className="flex items-center font-semibold">
+                  {isPlanApproved ? (
+                    <>
+                      <ShieldCheck size={15} className="mr-2 text-emerald-600 shrink-0" />
+                      Linked to Physician HITL-Verified Treatment Plan & Directives
+                    </>
+                  ) : (
+                    <>
+                      <ShieldAlert size={15} className="mr-2 text-amber-600 shrink-0" />
+                      Awaiting Physician HITL Sign-Off on Treatment Plan above
+                    </>
+                  )}
+                </span>
+                <span className="text-[10px] font-bold uppercase tracking-wider">
+                  {isPlanApproved ? 'HITL Locked' : 'Draft Context'}
+                </span>
+              </div>
+
               <button
+                id="btn-trigger-questionnaire"
                 onClick={handleTriggerPipeline}
                 disabled={isTriggering}
                 className={`w-full flex items-center justify-center text-sm font-medium text-white px-4 py-3 rounded-lg transition-all shadow-sm ${

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { TailoredQuestionnaireResult } from '../types';
-import { ArrowLeft, CheckCircle2, AlertTriangle, HelpCircle, Sparkles, Database, Download, Check, ChevronDown, ChevronUp, ChevronRight, X, User } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, AlertTriangle, HelpCircle, Sparkles, Database, Download, Check, ChevronDown, ChevronUp, ChevronRight, X, User, ShieldCheck } from 'lucide-react';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 
@@ -15,6 +15,7 @@ export const QuestionnaireResult: React.FC<QuestionnaireResultProps> = ({ result
   const [activeTab, setActiveTab] = useState<'retained' | 'additional' | 'dropped'>('retained');
   const [isDeployed, setIsDeployed] = useState(false);
   const [isDeploying, setIsDeploying] = useState(false);
+  const [deployToast, setDeployToast] = useState<string | null>(null);
   const [deployedLink, setDeployedLink] = useState<string | null>(null);
   const [deployedUri, setDeployedUri] = useState<string | null>(null);
   const [deployedSurveyId, setDeployedSurveyId] = useState<string | null>(null);
@@ -108,13 +109,13 @@ export const QuestionnaireResult: React.FC<QuestionnaireResultProps> = ({ result
         setDeployedUri(data.gcs_uri);
         setDeployedSurveyId(data.survey_id);
         localStorage.setItem('deployed_survey_id', data.survey_id);
-        alert("Survey deployed successfully! The custom survey has been written to GCS and integrated with the local ADK assistant.");
+        setDeployToast("Physician HITL approved! Tailored survey written to storage and bound to the Patient ADK Assistant.");
       } else {
-        alert(`Error deploying survey: ${data.message}`);
+        setDeployToast(`Error deploying survey: ${data.message}`);
       }
     } catch (err: any) {
       console.error("Deployment failed:", err);
-      alert(`Deployment failed: ${err.message || err}`);
+      setDeployToast(`Deployment failed: ${err.message || err}`);
     } finally {
       setIsDeploying(false);
     }
@@ -128,9 +129,10 @@ export const QuestionnaireResult: React.FC<QuestionnaireResultProps> = ({ result
   // Workflow sequence steps
   const steps = [
     { id: 1, name: 'Upload Narrative', status: 'complete' },
-    { id: 2, name: 'AI Analysis & Select', status: 'complete' },
-    { id: 3, name: 'Verify Questions (HITL)', status: isDeployed ? 'complete' : 'current' },
-    { id: 4, name: 'Deploy Survey', status: isDeployed ? 'current' : 'upcoming' }
+    { id: 2, name: 'Treatment Plan (HITL)', status: 'complete' },
+    { id: 3, name: 'Select & Tailor Forms', status: 'complete' },
+    { id: 4, name: 'Verify Questions (HITL)', status: isDeployed ? 'complete' : 'current' },
+    { id: 5, name: 'Deploy Survey', status: isDeployed ? 'current' : 'upcoming' }
   ];
 
   const customWebLink = `${window.location.origin}?showPatient=true&role=patient&mrn=${mrn}&survey_id=${deployedSurveyId || ''}`;
@@ -140,7 +142,7 @@ export const QuestionnaireResult: React.FC<QuestionnaireResultProps> = ({ result
       
       {/* Workflow Sequence Progress Bar */}
       <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm mb-8">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
+        <div className="max-w-5xl mx-auto flex items-center justify-between">
           {steps.map((step, idx) => (
             <React.Fragment key={step.id}>
               <div className="flex items-center gap-3">
@@ -173,6 +175,18 @@ export const QuestionnaireResult: React.FC<QuestionnaireResultProps> = ({ result
           ))}
         </div>
       </div>
+
+      {deployToast && (
+        <div className="mb-6 flex items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs font-bold text-emerald-800 shadow-sm">
+          <span className="flex items-center gap-2">
+            <ShieldCheck size={16} className="text-emerald-600 shrink-0" />
+            {deployToast}
+          </span>
+          <button onClick={() => setDeployToast(null)} className="text-emerald-700 hover:text-emerald-900">
+            <X size={15} />
+          </button>
+        </div>
+      )}
 
       {/* Local ADK Chatbot Deployed Banner */}
       {isDeployed && (
@@ -541,11 +555,17 @@ export const QuestionnaireResult: React.FC<QuestionnaireResultProps> = ({ result
           
           {/* AI Treatment Plan Recap */}
           {result.treatment_plan && (
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-              <h3 className="text-sm font-semibold text-slate-800 uppercase tracking-wider mb-4 flex items-center">
-                <Sparkles size={16} className="mr-2 text-clinical-600" />
-                Treatment Plan Context
-              </h3>
+            <div className="bg-white rounded-2xl shadow-sm border border-emerald-200 p-6">
+              <div className="flex items-center justify-between gap-2 mb-4">
+                <h3 className="text-sm font-semibold text-slate-800 uppercase tracking-wider flex items-center">
+                  <Sparkles size={16} className="mr-2 text-clinical-600" />
+                  Treatment Plan Context
+                </h3>
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                  <ShieldCheck size={12} className="text-emerald-600" />
+                  HITL Verified
+                </span>
+              </div>
               <div 
                 className="prose prose-sm max-w-none text-slate-600 prose-headings:text-slate-900 prose-strong:text-slate-800 max-h-96 overflow-y-auto custom-scrollbar pr-1"
                 dangerouslySetInnerHTML={renderMarkdown(result.treatment_plan)}
