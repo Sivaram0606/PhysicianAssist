@@ -1,0 +1,1408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agentic-PhysicianAssist — Parallel Agentic Architecture &amp; Clinical Functionality</title>
+  <style>
+    :root {
+      --bg-canvas: #090e1a;
+      --slide-bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --ink: #0f172a;
+      --muted: #334155;
+      --subtle: #64748b;
+      --arch: #4f46e5;
+      --arch-dark: #3730a3;
+      --arch-bg: #eef2ff;
+      --mech: #0284c7;
+      --mech-dark: #0369a1;
+      --mech-bg: #e0f2fe;
+      --func: #0f766e;
+      --func-bg: #ccfbf1;
+      --uniq: #059669;
+      --uniq-dark: #047857;
+      --uniq-bg: #ecfdf5;
+      --amber: #d97706;
+      --amber-bg: #fffbeb;
+      --rose: #e11d48;
+      --rose-bg: #fff1f2;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+      background: var(--bg-canvas);
+      color: var(--ink);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .viewport {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px 24px 8px;
+      min-height: 0;
+    }
+
+    .slide {
+      display: none;
+      width: 100%;
+      max-width: 1420px;
+      aspect-ratio: 16 / 9;
+      max-height: 100%;
+      background: var(--slide-bg);
+      border-radius: 18px;
+      box-shadow: 0 28px 70px rgba(0, 0, 0, 0.55);
+      padding: 34px 46px 26px;
+      position: relative;
+      overflow: hidden;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .slide.active {
+      display: flex;
+      animation: slideIn 0.24s ease-out;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .top-stripe {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 6px;
+      background: linear-gradient(90deg, var(--arch) 0%, var(--mech) 50%, var(--uniq) 100%);
+    }
+
+    /* Header */
+    .slide-header {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+
+    .pill-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10.5px;
+      font-weight: 800;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      padding: 4px 11px;
+      border-radius: 999px;
+    }
+    .eyebrow.arch { color: var(--arch); background: var(--arch-bg); border: 1px solid #c7d2fe; }
+    .eyebrow.mech { color: var(--mech-dark); background: var(--mech-bg); border: 1px solid #bae6fd; }
+    .eyebrow.uniq { color: var(--uniq-dark); background: var(--uniq-bg); border: 1px solid #a7f3d0; }
+    .eyebrow.amber { color: var(--amber); background: var(--amber-bg); border: 1px solid #fde68a; }
+
+    h1 {
+      font-size: clamp(28px, 2.9vw, 42px);
+      font-weight: 850;
+      letter-spacing: -0.025em;
+      line-height: 1.12;
+      color: var(--ink);
+    }
+
+    h2 {
+      font-size: clamp(20px, 1.95vw, 28px);
+      font-weight: 820;
+      letter-spacing: -0.02em;
+      line-height: 1.18;
+      color: var(--ink);
+    }
+
+    .subtitle {
+      font-size: 13.5px;
+      color: var(--muted);
+      line-height: 1.45;
+      max-width: 1180px;
+    }
+
+    /* Parallel Dual-Track Layout */
+    .parallel-stage {
+      display: grid;
+      grid-template-columns: 45% 55%;
+      gap: 20px;
+      flex: 1;
+      min-height: 0;
+      margin: 12px 0 10px;
+      align-items: stretch;
+    }
+
+    .left-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 0;
+      justify-content: space-between;
+    }
+
+    .right-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 0;
+      justify-content: space-between;
+    }
+
+    .track-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      padding: 12px 15px;
+      box-shadow: 0 2px 10px rgba(15, 23, 42, 0.035);
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .track-card.arch { border-left: 4px solid var(--arch); }
+    .track-card.mech { border-left: 4px solid var(--mech); }
+    .track-card.func { border-left: 4px solid var(--func); }
+    .track-card.uniq { border-left: 4px solid var(--uniq); background: linear-gradient(180deg, #ffffff 0%, #f0fdf4 100%); }
+    .track-card.amber { border-left: 4px solid var(--amber); }
+
+    .track-tag {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .track-tag.arch { color: var(--arch); }
+    .track-tag.mech { color: var(--mech-dark); }
+    .track-tag.func { color: var(--func); }
+    .track-tag.uniq { color: var(--uniq-dark); }
+
+    .code-chip {
+      font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+      font-size: 10px;
+      font-weight: 600;
+      background: #f1f5f9;
+      color: #1e293b;
+      padding: 2px 6px;
+      border-radius: 5px;
+      border: 1px solid #cbd5e1;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    .track-card h3 {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--ink);
+      line-height: 1.25;
+    }
+
+    .track-card p, .track-card li {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.42;
+    }
+
+    .track-card ul {
+      padding-left: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .screen-box {
+      flex: 1;
+      min-height: 0;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 13px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.07);
+      overflow: hidden;
+    }
+
+    .screen-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 2px 6px 6px;
+      border-bottom: 1px solid #f1f5f9;
+      margin-bottom: 6px;
+      flex-shrink: 0;
+    }
+
+    .dots { display: flex; gap: 5px; }
+    .dots span { width: 8px; height: 8px; border-radius: 50%; background: #cbd5e1; }
+    .dots span:nth-child(1) { background: #fb7185; }
+    .dots span:nth-child(2) { background: #fbbf24; }
+    .dots span:nth-child(3) { background: #34d399; }
+
+    .screen-label {
+      font-size: 10.5px;
+      font-weight: 700;
+      color: var(--subtle);
+    }
+
+    .screen-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 7px;
+      min-height: 0;
+    }
+
+    /* Grids for Overview & Synthesis Slides */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      flex: 1;
+      min-height: 0;
+      margin: 12px 0 10px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      flex: 1;
+      min-height: 0;
+      margin: 12px 0 10px;
+    }
+
+    /* Matrix Table */
+    .matrix-wrap {
+      flex: 1;
+      min-height: 0;
+      margin: 10px 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    table.arch-matrix {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0 7px;
+    }
+
+    table.arch-matrix th {
+      text-align: left;
+      font-size: 10.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 6px 12px;
+      color: var(--subtle);
+    }
+
+    table.arch-matrix td {
+      background: #ffffff;
+      padding: 10px 12px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.38;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    table.arch-matrix td:first-child {
+      border-left: 4px solid var(--arch);
+      border-top-left-radius: 10px;
+      border-bottom-left-radius: 10px;
+      font-weight: 800;
+      color: var(--arch-dark);
+      width: 24%;
+    }
+
+    table.arch-matrix td:nth-child(2) {
+      width: 26%;
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 11px;
+      color: #0f172a;
+      background: #f8fafc;
+    }
+
+    table.arch-matrix td:nth-child(3) {
+      width: 27%;
+    }
+
+    table.arch-matrix td:last-child {
+      border-right: 1px solid var(--border);
+      border-top-right-radius: 10px;
+      border-bottom-right-radius: 10px;
+      font-weight: 700;
+      color: var(--uniq-dark);
+      background: #f0fdf4;
+      width: 23%;
+    }
+
+    /* KPI Strip */
+    .kpi-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      flex-shrink: 0;
+    }
+
+    .kpi-box {
+      background: #0f172a;
+      color: #fff;
+      border-radius: 12px;
+      padding: 11px 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .kpi-box .num {
+      font-size: 22px;
+      font-weight: 850;
+      color: #38bdf8;
+      letter-spacing: -0.02em;
+    }
+    .kpi-box .lbl {
+      font-size: 11px;
+      color: #cbd5e1;
+      line-height: 1.3;
+    }
+
+    /* Footer */
+    .slide-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid var(--border);
+      padding-top: 9px;
+      font-size: 11px;
+      color: var(--subtle);
+      flex-shrink: 0;
+    }
+
+    /* Controls Bar */
+    .controls {
+      height: 46px;
+      background: #0f172a;
+      border-top: 1px solid #1e293b;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      color: #cbd5e1;
+      font-size: 12.5px;
+      flex-shrink: 0;
+    }
+
+    .ctrl-btns { display: flex; align-items: center; gap: 10px; }
+
+    button.ctrl {
+      background: #1e293b;
+      color: #f8fafc;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 6px 13px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    button.ctrl:hover { background: #334155; }
+
+    .progress-dots {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .p-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #334155;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .p-dot.active {
+      width: 24px;
+      background: #38bdf8;
+    }
+
+    @media print {
+      body { background: #fff; height: auto; overflow: visible; }
+      .viewport { display: block; padding: 0; }
+      .controls { display: none !important; }
+      .slide {
+        display: flex !important;
+        page-break-after: always;
+        box-shadow: none;
+        border: 1px solid #cbd5e1;
+        border-radius: 0;
+        max-width: none;
+        width: 100%;
+        margin: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="viewport">
+
+  <!-- ==================== SLIDE 1: TITLE & PARALLEL THESIS ==================== -->
+  <section class="slide active" style="background: radial-gradient(circle at 85% 15%, #1e293b 0%, #090e1a 70%); color: #f8fafc;">
+    <div class="top-stripe"></div>
+    <div class="slide-header">
+      <div class="pill-row">
+        <span class="eyebrow" style="background: rgba(79,70,229,0.22); color: #a5b4fc; border: 1px solid rgba(165,180,252,0.35);">Google ADK Multi-Agent Architecture</span>
+        <span class="eyebrow" style="background: rgba(2,132,199,0.22); color: #7dd3fc; border: 1px solid rgba(125,211,252,0.35);">Vertex AI Gemini 3.5 Flash</span>
+        <span class="eyebrow" style="background: rgba(5,150,105,0.22); color: #6ee7b7; border: 1px solid rgba(110,231,183,0.35);">Dual Physician HITL Governance</span>
+      </div>
+      <h1 style="color: #ffffff; margin-top: 6px;">Agentic-PhysicianAssist</h1>
+      <p class="subtitle" style="color: #cbd5e1; font-size: 15.5px;">
+        A Parallel Deep-Dive into the <strong style="color:#a5b4fc;">Agentic Architecture</strong>, <strong style="color:#7dd3fc;">End-to-End Clinical Functionality</strong>, <strong style="color:#fde68a;">How Functionality Is Achieved</strong>, and <strong style="color:#6ee7b7;">Unique Clinical &amp; Engineering Advantages</strong>
+      </p>
+    </div>
+
+    <div class="parallel-stage" style="grid-template-columns: 42% 58%; margin: 14px 0;">
+      <div class="left-stack">
+        <div class="track-card" style="background: rgba(30,41,59,0.78); border-color: #334155; border-left: 4px solid #818cf8;">
+          <div class="track-tag" style="color: #a5b4fc;">1. AGENTIC ARCHITECTURE LENS</div>
+          <h3 style="color: #fff;">5 Coordinated Agentic Workflows</h3>
+          <p style="color: #cbd5e1;">8× Concurrent Scribe Coroutines, Discovery Engine Claim Refiner, Oncology PDF Scribe, ADK Treatment Plan &amp; Form Ranker Agents, N× Parallel Form Sub-Agents, and Tool-Equipped Patient <code style="color:#7dd3fc;">LlmAgent</code>.</p>
+        </div>
+        <div class="track-card" style="background: rgba(30,41,59,0.78); border-color: #334155; border-left: 4px solid #38bdf8;">
+          <div class="track-tag" style="color: #7dd3fc;">2. CLINICAL FUNCTIONALITY LENS</div>
+          <h3 style="color: #fff;">3 Unified Clinical Suites</h3>
+          <p style="color: #cbd5e1;"><strong>Suite 1:</strong> Grounded Clinical Notes &amp; Pathology PDF Hub &rarr; <strong>Suite 2:</strong> Physician HITL Treatment Plan &amp; Survey Tailoring &rarr; <strong>Suite 3:</strong> Zero-Login Patient Chat Intake.</p>
+        </div>
+        <div class="track-card" style="background: rgba(6,78,59,0.45); border-color: #065f46; border-left: 4px solid #34d399;">
+          <div class="track-tag" style="color: #6ee7b7;">3. CORE UNIQUENESS &amp; ADVANTAGE</div>
+          <h3 style="color: #fff;">Closed-Loop, Zero-Hallucination Governance</h3>
+          <p style="color: #d1fae5;">Every AI claim maps to an exact intake field <code style="color:#a7f3d0;">[n]</code>, every care plan requires Physician HITL sign-off, and approved overrides dynamically tailor patient follow-up.</p>
+        </div>
+      </div>
+
+      <div class="screen-box" style="background: rgba(15,23,42,0.85); border-color: #334155; padding: 10px;">
+        <div class="screen-bar" style="border-color: #1e293b;">
+          <div class="dots"><span></span><span></span><span></span></div>
+          <div class="screen-label" style="color: #94a3b8;">End-to-End Agentic Clinical Flow Visual Overview</div>
+        </div>
+        <img src="Agentic_PhysicianAssist_Hero_Banner.png" alt="Agentic-PhysicianAssist Hero Flow Banner" />
+      </div>
+    </div>
+
+    <div class="slide-footer" style="border-color: #1e293b; color: #94a3b8;">
+      <span>Agentic-PhysicianAssist &bull; Google Cloud Vertex AI, Discovery Engine &amp; ADK</span>
+      <span>Use &larr; / &rarr; keys to navigate &bull; Slide 1 / 14</span>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 2: CLINICAL PROBLEM VS PARALLEL AGENTIC SOLUTION ==================== -->
+  <section class="slide">
+    <div class="top-stripe"></div>
+    <div class="slide-header">
+      <div class="pill-row">
+        <span class="eyebrow amber">Why Monolithic AI Fails in Healthcare</span>
+        <span class="eyebrow arch">Why Multi-Agent + HITL Wins</span>
+      </div>
+      <h2>Clinical Bottlenecks vs. Parallel Agentic Engineering</h2>
+      <p class="subtitle">Traditional single-prompt LLM wrappers fail clinical safety, latency, and workflow continuity. Agentic-PhysicianAssist pairs each clinical bottleneck with a dedicated agentic pattern.</p>
+    </div>
+
+    <div class="matrix-wrap">
+      <table class="arch-matrix">
+        <thead>
+          <tr>
+            <th>Clinical Bottleneck</th>
+            <th>Agentic Architecture Pattern</th>
+            <th>Application Functionality</th>
+            <th>Unique Advantage Achieved</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>After-Hours "Pajama Time" Charting</td>
+            <td>asyncio.gather(8 × Gemini 3.5 Flash) + Multimodal PDF Scribe</td>
+            <td>1-click 8-section clinical note + embedded hematopathology PDF synthesis</td>
+            <td>&lt; 4s full pre-visit chart (8× faster than sequential LLM calls)</td>
+          </tr>
+          <tr>
+            <td>Black-Box AI Hallucinations</td>
+            <td>DiscoveryEngine CheckGrounding + Semantic Field Refiner + EvalTask</td>
+            <td>Clickable inline [n] badges scroll/highlight exact source field + AI Audit tab</td>
+            <td>"Trust, but Verify" field-level provenance + 7 live LLM-as-a-Judge scores</td>
+          </tr>
+          <tr>
+            <td>Unverified AI Care Recommendations</td>
+            <td>ADK treatment_plan_agent (temp=0.0) + Stateful HITL Lock Gate #1</td>
+            <td>Interactive Physician HITL Override chips, Markdown editor &amp; MD Sign-Off</td>
+            <td>Physician overrides govern downstream agents; AI never acts autonomously</td>
+          </tr>
+          <tr>
+            <td>80-Question Static Survey Fatigue</td>
+            <td>ADK form_recommendation_agent + N× Parallel questionnaire_agent_{form}</td>
+            <td>Priority form ranking + Retained / AI-Suggested / Dropped verification tabs</td>
+            <td>30–50% fewer redundant questions + precision safety checks from HITL plan</td>
+          </tr>
+          <tr>
+            <td>Patient Portal Login Friction</td>
+            <td>ADK LlmAgent + Runner + get_survey_questions Tool / AgentRegistry MCP</td>
+            <td>Zero-login conversational Patient Survey Assistant (chips, text, or voice)</td>
+            <td>Empathetic 1-question-at-a-time intake directly bound to deployed GCS JSON</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="slide-footer">
+      <span>Agentic-PhysicianAssist &bull; Problem-to-Architecture Mapping</span>
+      <span>Slide 2 / 14</span>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 3: MASTER END-TO-END AGENTIC TOPOLOGY ==================== -->
+  <section class="slide">
+    <div class="top-stripe"></div>
+    <div class="slide-header">
+      <div class="pill-row">
+        <span class="eyebrow arch">System Blueprint</span>
+        <span class="eyebrow mech">3 Clinical Suites &harr; 4 Architectural Layers</span>
+      </div>
+      <h2>Master Agentic Architecture &amp; Three-Pillar Functional Flow</h2>
+      <p class="subtitle">A unified FastAPI + React 19 monorepo orchestrating specialized Google ADK agents, Discovery Engine grounding, Vertex AI Evaluation, and Cloud Storage handoffs across three clinical workspaces.</p>
+    </div>
+
+    <div class="parallel-stage" style="grid-template-columns: 60% 40%;">
+      <div class="screen-box">
+        <div class="screen-bar">
+          <div class="dots"><span></span><span></span><span></span></div>
+          <div class="screen-label">Three-Pillar Functional &amp; Agentic Handoff Topology</div>
+        </div>
+        <img src="assets/demo/00_three_pillar_workflow.png" alt="Three Pillar Workflow Diagram" />
+      </div>
+
+      <div class="left-stack">
+        <div class="track-card arch">
+          <div class="track-tag arch">LAYER 1 &bull; PRESENTATION &amp; HITL STATE <span class="code-chip">React 19 + TypeScript</span></div>
+          <h3>3 Role-Specific Workspaces + 2 HITL Gates</h3>
+          <p>Maintains live citation highlights, PDF viewport, Physician HITL Treatment Plan attestation state, Coordinator question toggles, and ADK chat session state.</p>
+        </div>
+        <div class="track-card mech">
+          <div class="track-tag mech">LAYER 2 &bull; UNIFIED GATEWAY <span class="code-chip">main.py &bull; FastAPI</span></div>
+          <h3>Dual-Router Async Orchestration</h3>
+          <p>Mounts <code class="code-chip">clingen_synth</code> (Scribe/Audit/PDF) and <code class="code-chip">survey_tailor</code> (ADK Care Plan, Form Tailoring &amp; Chat Runner) in a single container.</p>
+        </div>
+        <div class="track-card func">
+          <div class="track-tag func">LAYER 3 &bull; GOOGLE ADK &amp; GENAI MESH <span class="code-chip">google.adk + google.genai</span></div>
+          <h3>Task-Specialized Agents + Pydantic Schemas</h3>
+          <p>Combines raw high-speed async coroutines for prose synthesis with stateful ADK <code class="code-chip">Agent</code> / <code class="code-chip">LlmAgent</code> runners, decoupled Markdown prompts, and tool calling.</p>
+        </div>
+        <div class="track-card uniq">
+          <div class="track-tag uniq">LAYER 4 &bull; TRUST &amp; CLOUD DATA PLANE <span class="code-chip">Vertex AI &bull; GCS</span></div>
+          <h3>Grounding, LLM-as-a-Judge &amp; Dual Storage</h3>
+          <p>Discovery Engine <code class="code-chip">CheckGrounding</code>, Vertex AI <code class="code-chip">EvalTask</code>, and GCS bucket persistence with automatic local disk fallback.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <span>Agentic-PhysicianAssist &bull; Master System Topology</span>
+      <span>Slide 3 / 15</span>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 4: AGENTIC HIERARCHY & FLOW DIAGRAM (ROOT & SUB-AGENTS) ==================== -->
+  <section class="slide">
+    <div class="top-stripe"></div>
+    <div class="slide-header">
+      <div class="pill-row">
+        <span class="eyebrow arch">Agentic Hierarchy &amp; Execution Flow</span>
+        <span class="eyebrow uniq">Root Orchestrators &bull; Sub-Agents &bull; Tools/MCP &bull; HITL</span>
+      </div>
+      <h2>Agentic Flow Diagram: Root Agents, Sub-Agents &amp; Governance Gates</h2>
+      <p class="subtitle">Hierarchical orchestration from the FastAPI/ADK Platform Supervisor into 3 Domain Root Orchestrators / Root <code class="code-chip">LlmAgent</code>, Parallel &amp; Sequential Sub-Agents, MCP Toolsets, and Dual HITL Gates.</p>
+    </div>
+
+    <div class="screen-box" style="margin: 10px 0;">
+      <div class="screen-bar">
+        <div class="dots"><span></span><span></span><span></span></div>
+        <div class="screen-label">Hierarchical Multi-Agent Topology — Root Orchestrators, Sub-Agents, Tools &amp; HITL Gates</div>
+      </div>
+      <img src="assets/demo/00b_agentic_root_subagents_flow.png" alt="Agentic Flow Diagram with Root and Sub-Agents" />
+    </div>
+
+    <div class="slide-footer">
+      <span>Agentic-PhysicianAssist &bull; Root &amp; Sub-Agent Execution Flow</span>
+      <span>Slide 4 / 17</span>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 5: AGENTIC DESIGN PATTERNS (1/2) — COMPOSITE META-PATTERN ==================== -->
+  <section class="slide">
+    <div class="top-stripe"></div>
+    <div class="slide-header">
+      <div class="pill-row">
+        <span class="eyebrow arch">Agentic Design Patterns (1 / 2)</span>
+        <span class="eyebrow uniq">Governed Composite Multi-Agent Pattern</span>
+      </div>
+      <h2>Agentic Pattern Followed: Composite Orchestrator-Worker + HITL + ReAct</h2>
+      <p class="subtitle">Why clinical healthcare requires composing <strong>5 specialized canonical agentic patterns</strong> rather than relying on an unconstrained single-agent ReAct loop.</p>
+    </div>
+
+    <div class="screen-box" style="margin: 10px 0;">
+      <div class="screen-bar">
+        <div class="dots"><span></span><span></span><span></span></div>
+        <div class="screen-label">5 Interlocking Canonical Agentic Design Patterns Across Suites 1, 2 &amp; 3</div>
+      </div>
+      <img src="assets/demo/00c_agentic_design_patterns.png" alt="Governed Composite Multi-Agent Design Patterns Diagram" />
+    </div>
+
+    <div class="slide-footer">
+      <span>Agentic-PhysicianAssist &bull; Composite Agentic Design Pattern Map</span>
+      <span>Slide 5 / 17</span>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 6: AGENTIC DESIGN PATTERNS (2/2) — PATTERN EXECUTION & WHY ==================== -->
+  <section class="slide">
+    <div class="top-stripe"></div>
+    <div class="slide-header">
+      <div class="pill-row">
+        <span class="eyebrow arch">Agentic Design Patterns (2 / 2)</span>
+        <span class="eyebrow mech">5 Canonical Patterns &amp; Clinical Rationale</span>
+      </div>
+      <h2>How Each Agentic Pattern Executes &amp; Why It Was Chosen</h2>
+      <p class="subtitle">Pairing deterministic workflow patterns for clinical reasoning &amp; verification with a stateful tool-calling ReAct pattern for natural patient conversation.</p>
+    </div>
+
+    <div class="matrix-wrap">
+      <table class="arch-matrix">
+        <thead>
+          <tr>
+            <th>Canonical Agentic Pattern</th>
+            <th>ADK / Vertex AI Implementation</th>
+            <th>How It Operates in the Workflow</th>
+            <th>Why Chosen (Clinical Advantage)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1. Parallel Scatter-Gather</td>
+            <td>asyncio.gather() (8 Scribes &amp; N Forms)</td>
+            <td>Dispatches domain-isolated section &amp; form sub-agents concurrently and merges typed results.</td>
+            <td>Cuts latency from ~35s to &lt; 4s &amp; prevents "lost in the middle" omission</td>
+          </tr>
+          <tr>
+            <td>2. Generator–Verifier–Judge</td>
+            <td>CheckGrounding + Refiner + EvalTask</td>
+            <td>Decouples prose drafting from claim span detection, field_id mapping [n], and 7-metric audit.</td>
+            <td>Eliminates self-confirmation bias; guarantees field-level provenance</td>
+          </tr>
+          <tr>
+            <td>3. Sequential Schema Chain</td>
+            <td>google.adk.Agent (temp=0.0) + Pydantic</td>
+            <td>Chains Lab PDF &rarr; Care Plan &rarr; Form Ranker &rarr; Tailoring via strict output_schema contracts.</td>
+            <td>Enforces clinical order of operations &amp; 100% crash-free JSON rendering</td>
+          </tr>
+          <tr>
+            <td>4. HITL Interrupt &amp; State-Lock</td>
+            <td>effectiveTreatmentPlan + Deploy Gate</td>
+            <td>Checkpoints execution at MD Plan Sign-Off (Gate #1) &amp; Coordinator Verify (Gate #2).</td>
+            <td>Physician overrides actively reprogram downstream safety questions</td>
+          </tr>
+          <tr>
+            <td>5. Stateful ReAct + Tool/MCP</td>
+            <td>ADK LlmAgent + Runner + MCP / GCS Tool</td>
+            <td>Multi-turn session agent reasons when to call get_survey_questions &amp; paces 1-by-1 Q&amp;A.</td>
+            <td>Combines strict adherence to approved survey with empathetic dialogue</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="slide-footer">
+      <span>Agentic-PhysicianAssist &bull; Canonical Agentic Design Patterns</span>
+      <span>Slide 6 / 17</span>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 7: STAGE 1 — PARALLEL 8-SECTION SCRIBE ==================== -->
+  <section class="slide">
+    <div class="top-stripe"></div>
+    <div class="slide-header">
+      <div class="pill-row">
+        <span class="eyebrow arch">Stage 1 &bull; Suite 1 Architecture</span>
+        <span class="eyebrow mech">Parallel Async Fan-Out</span>
+      </div>
+      <h2>Concurrent 8-Section Clinical Scribe Synthesis</h2>
+      <p class="subtitle">Translating raw multi-system intake scores into dense, formal clinical prose in under 4 seconds via concurrent Vertex AI coroutines.</p>
+    </div>
+
+    <div class="parallel-stage">
+      <div class="left-stack">
+        <div class="track-card arch">
+          <div class="track-tag arch">AGENTIC ARCHITECTURE <span class="code-chip">clingen_synth/server.py</span></div>
+          <h3>8× Concurrent Section Scribe Agents</h3>
+          <ul>
+            <li>Spawns 8 specialized async <code class="code-chip">call_gemini_vertex()</code> coroutines simultaneously via <code class="code-chip">asyncio.gather(*tasks)</code> on <strong>Gemini 3.5 Flash</strong>.</li>
+            <li>Dedicated clinical focus per agent: <em>HPI, ROS, Social, Medical, Nutritional/Functional, Systemic Hypermobility, Disability, Infectious Disease</em>.</li>
+          </ul>
+        </div>
+        <div class="track-card mech">
+          <div class="track-tag mech">HOW FUNCTIONALITY IS ACHIEVED <span class="code-chip">POST /api/patient/{mrn}/narrative</span></div>
+          <h3>Score-Aware Prompt Engineering + Zero Speculation</h3>
+          <ul>
+            <li>Normalizes REDCap JSON records and embeds clinical rubric interpreters (<code class="code-chip">MIDAS 38</code>, <code class="code-chip">PAGI-QOL 1.4</code>, <code class="code-chip">Beighton 7/9</code>, <code class="code-chip">PROMIS 74.5</code>).</li>
+            <li>Enforces strict hallucination guardrails: every medication, surgery, and timeline milestone must exist in source JSON.</li>
+          </ul>
+        </div>
+        <div class="track-card uniq">
+          <div class="track-tag uniq">CLINICAL FUNCTIONALITY &amp; UNIQUE ADVANTAGE</div>
+          <h3>Auto-Populate &rarr; 4-Second Complete Pre-Chart</h3>
+          <ul>
+            <li><strong>Functionality:</strong> Toggling <em>Auto-Populate</em> loads raw patient scores; clicking <em>Run Note Generation Pipeline</em> renders 8 navigable sections at once.</li>
+            <li><strong>Advantage:</strong> Cuts synthesis wait from ~35s sequential to <strong>&lt; 4s</strong> and converts cryptic raw numbers into medical nomenclature automatically.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="screen-box">
+        <div class="screen-bar">
+          <div class="dots"><span></span><span></span><span></span></div>
+          <div class="screen-label">Suite 1 — Auto-Populate Questionnaire &amp; Parallel Pipeline Trigger</div>
+        </div>
+        <img src="assets/demo/02_autopopulate_run_pipeline.png" alt="Auto Populate and Run Pipeline Screen" />
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <span>Suite 1: Clinical Notes Hub &bull; Parallel Async Scribe Fan-Out</span>
+      <span>Slide 4 / 14</span>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 5: STAGE 2 — TWO-STEP GROUNDING & AI AUDIT ==================== -->
+  <section class="slide">
+    <div class="top-stripe"></div>
+    <div class="slide-header">
+      <div class="pill-row">
+        <span class="eyebrow arch">Stage 2 &bull; Clinical Safety Engine</span>
+        <span class="eyebrow uniq">Zero Black-Box Hallucinations</span>
+      </div>
+      <h2>Two-Stage Citation Grounding &amp; Vertex AI LLM-as-a-Judge Audit</h2>
+      <p class="subtitle">How every synthesized sentence is verified against structured intake fields and audited across 7 clinical quality dimensions in real time.</p>
+    </div>
+
+    <div class="parallel-stage">
+      <div class="left-stack">
+        <div class="track-card arch">
+          <div class="track-tag arch">AGENTIC ARCHITECTURE <span class="code-chip">DiscoveryEngine + EvalTask</span></div>
+          <h3>3-Component Verification Pipeline</h3>
+          <ul>
+            <li><strong>1. Fact Builder:</strong> <code class="code-chip">prepare_grounding_facts()</code> converts patient JSON into <code class="code-chip">GroundingFact</code> objects while tagging demographics to prevent citation theft.</li>
+            <li><strong>2. Grounding Detector + Semantic Refiner Agent:</strong> <code class="code-chip">CheckGroundingRequest(threshold=0.1)</code> locates factual spans; a second Gemini Refiner call maps clinical severity phrases to exact REDCap <code class="code-chip">field_id</code>s.</li>
+            <li><strong>3. Independent Audit Judge:</strong> <code class="code-chip">vertexai.preview.evaluation.EvalTask</code> scores 7 pointwise metrics asynchronously via <code class="code-chip">asyncio.to_thread</code>.</li>
+          </ul>
+        </div>
+        <div class="track-card mech">
+          <div class="track-tag mech">HOW FUNCTIONALITY IS ACHIEVED <span class="code-chip">data-field="{best_field}"</span></div>
+          <h3>DOM-Bound Bidirectional Provenance</h3>
+          <p>Injects <code class="code-chip">&lt;span className="citation" data-field="..."&gt;[n]&lt;/span&gt;</code> tags in reverse character-offset order so React click handlers scroll &amp; glow the exact right-hand questionnaire input.</p>
+        </div>
+        <div class="track-card uniq">
+          <div class="track-tag uniq">UNIQUENESS &amp; CLINICAL ADVANTAGE</div>
+          <h3>Field-Level Provenance (Not Vague Document RAG)</h3>
+          <p>Unlike generic scribes that cite an entire 20-page chart, clicking <code class="code-chip">[1]</code> highlights the exact raw answer box, paired with live Groundedness, Coherence, and Fluency scorecards.</p>
+        </div>
+      </div>
+
+      <div class="right-stack">
+        <div class="screen-box" style="flex: 1;">
+          <div class="screen-bar">
+            <div class="dots"><span></span><span></span><span></span></div>
+            <div class="screen-label">Interactive Inline [n] Citations Linked to Raw Intake Fields</div>
+          </div>
+          <img src="assets/demo/03_clinical_report_grounded.png" alt="Grounded Clinical Note with Citations" />
+        </div>
+        <div class="screen-box" style="flex: 1;">
+          <div class="screen-bar">
+            <div class="dots"><span></span><span></span><span></span></div>
+            <div class="screen-label">Live Vertex AI Evaluation Scorecard (AI Audit Tab)</div>
+          </div>
+          <img src="assets/demo/04_ai_audit_evaluation.png" alt="Vertex AI Audit Evaluation Metrics" />
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <span>Suite 1: Clinical Safety &bull; Discovery Engine Grounding + Vertex AI EvalTask</span>
+      <span>Slide 5 / 14</span>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 6: STAGE 3 — MULTIMODAL LAB PDF ONCOLOGY SCRIBE ==================== -->
+  <section class="slide">
+    <div class="top-stripe"></div>
+    <div class="slide-header">
+      <div class="pill-row">
+        <span class="eyebrow arch">Stage 3 &bull; Unstructured Diagnostic Ingestion</span>
+        <span class="eyebrow mech">Oncology Scribe Agent</span>
+      </div>
+      <h2>Multimodal Pathology PDF Synthesis &amp; Cross-Suite State Export</h2>
+      <p class="subtitle">Unifying external diagnostic pathology PDFs (e.g., high-risk FLT3-ITD+ Acute Myeloid Leukemia) directly into the longitudinal clinical narrative.</p>
+    </div>
+
+    <div class="parallel-stage">
+      <div class="left-stack">
+        <div class="track-card arch">
+          <div class="track-tag arch">AGENTIC ARCHITECTURE <span class="code-chip">/api/patient/{mrn}/lab-narrative</span></div>
+          <h3>Domain-Specialized Oncology Scribe Agent</h3>
+          <ul>
+            <li>Streams native diagnostic PDFs via <code class="code-chip">FileResponse(application/pdf)</code> into an embedded browser viewport.</li>
+            <li>Extracts full pathology report text via <code class="code-chip">PyPDF2.PdfReader</code> and invokes a specialized <strong>Oncology Scribe</strong> Gemini 3.5 Flash prompt focused on blast counts, immunophenotyping, and molecular mutations (<code class="code-chip">FLT3-ITD+</code>, <code class="code-chip">NPM1</code>).</li>
+          </ul>
+        </div>
+        <div class="track-card mech">
+          <div class="track-tag mech">HOW FUNCTIONALITY IS ACHIEVED <span class="code-chip">Export to Survey Tailoring</span></div>
+          <h3>Unified Narrative Prepending &amp; Context Handoff</h3>
+          <p>Prepends the synthesized <em>Oncology Lab Interpretation</em> section onto the 8-section intake note and serializes the combined clinical state directly into Suite 2's ADK <code class="code-chip">/api/analyze-narrative</code> pipeline.</p>
+        </div>
+        <div class="track-card uniq">
+          <div class="track-tag uniq">CLINICAL FUNCTIONALITY &amp; UNIQUE ADVANTAGE</div>
+          <h3>Zero Context Silos Between Labs &amp; Intake</h3>
+          <p><strong>Advantage:</strong> Critical acute findings hidden inside external PDF attachments (like <code class="code-chip">WBC 42.5 &times; 10&sup9;/L</code> &amp; <code class="code-chip">82% blasts</code>) immediately inform downstream AI treatment planning and patient safety questions.</p>
+        </div>
+      </div>
+
+      <div class="screen-box">
+        <div class="screen-bar">
+          <div class="dots"><span></span><span></span><span></span></div>
+          <div class="screen-label">Oncology Lab Interpretation Prepended to Grounded Clinical Note</div>
+        </div>
+        <img src="assets/demo/06_oncology_lab_synthesis.png" alt="Oncology Lab Synthesis Screen" />
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <span>Suite 1 &rarr; Suite 2 Handoff &bull; Diagnostic PDF Extraction &amp; Oncology Scribe</span>
+      <span>Slide 6 / 14</span>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 7: STAGE 4 — ADK TREATMENT PLAN AGENT ==================== -->
+  <section class="slide">
+    <div class="top-stripe"></div>
+    <div class="slide-header">
+      <div class="pill-row">
+        <span class="eyebrow arch">Stage 4 &bull; Google ADK Reasoning</span>
+        <span class="eyebrow amber">Pending Physician HITL</span>
+      </div>
+      <h2>Google ADK Treatment Plan Agent &amp; Cross-Specialty Risk Detection</h2>
+      <p class="subtitle">Deterministic multi-system clinical reasoning powered by Google Agent Development Kit (ADK) that drafts care strategies while enforcing human review.</p>
+    </div>
+
+    <div class="parallel-stage">
+      <div class="left-stack">
+        <div class="track-card arch">
+          <div class="track-tag arch">AGENTIC ARCHITECTURE <span class="code-chip">survey_tailor/agents.py</span></div>
+          <h3>ADK <code class="code-chip">treatment_plan_agent</code> + <code class="code-chip">Runner</code></h3>
+          <ul>
+            <li>Instantiates <code class="code-chip">google.adk.Agent(name="treatment_plan_agent")</code> backed by custom <code class="code-chip">VertexGemini(location="global")</code> at deterministic <code class="code-chip">temperature=0.0</code>.</li>
+            <li>Executed via <code class="code-chip">Runner</code> + <code class="code-chip">InMemorySessionService</code> with decoupled Markdown system prompts (<code class="code-chip">treatment_plan_system.md</code>) and <code class="code-chip">tenacity</code> exponential backoff on <code class="code-chip">429</code> rate limits.</li>
+          </ul>
+        </div>
+        <div class="track-card mech">
+          <div class="track-tag mech">HOW FUNCTIONALITY IS ACHIEVED <span class="code-chip">POST /api/analyze-narrative</span></div>
+          <h3>Cross-Specialty Contraindication Synthesis</h3>
+          <p>Simultaneously evaluates hematology-oncology urgency (<code class="code-chip">FLT3-ITD+ AML</code> 7+3 + midostaurin induction) against chronic comorbidities (severe G-tube gastroparesis, hEDS, migraines), flagging oral Ibuprofen GI mucosa &amp; platelet bleeding hazards.</p>
+        </div>
+        <div class="track-card uniq">
+          <div class="track-tag uniq">CLINICAL FUNCTIONALITY &amp; UNIQUE ADVANTAGE</div>
+          <h3>Cross-Specialty Safety Net + Mandatory Hold</h3>
+          <p><strong>Advantage:</strong> Catches multi-specialty drug-disease conflicts single-specialty clinics miss, while explicitly marking the output <strong>Pending Physician HITL</strong> until attested by an MD.</p>
+        </div>
+      </div>
+
+      <div class="screen-box">
+        <div class="screen-bar">
+          <div class="dots"><span></span><span></span><span></span></div>
+          <div class="screen-label">Suite 2 — AI-Generated Treatment Plan Awaiting Physician HITL Verification</div>
+        </div>
+        <img src="assets/demo/07_treatment_plan_workspace.png" alt="AI-Generated Treatment Plan Pending HITL" />
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <span>Suite 2: Patient Analysis Workspace &bull; Google ADK Treatment Plan Agent</span>
+      <span>Slide 7 / 14</span>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 8: STAGE 5 — PHYSICIAN HITL OVERRIDES & SIGN-OFF ==================== -->
+  <section class="slide">
+    <div class="top-stripe"></div>
+    <div class="slide-header">
+      <div class="pill-row">
+        <span class="eyebrow uniq">Stage 5 &bull; Governance Gate #1</span>
+        <span class="eyebrow arch">Stateful HITL Context Propagation</span>
+      </div>
+      <h2>Interactive Physician HITL Overrides, Attestation &amp; Downstream Lock</h2>
+      <p class="subtitle">Keeping the physician in complete clinical command: interactive overrides, direct care-plan editing, digital sign-off, and downstream agent locking.</p>
+    </div>
+
+    <div class="parallel-stage">
+      <div class="left-stack">
+        <div class="track-card arch">
+          <div class="track-tag arch">AGENTIC ARCHITECTURE <span class="code-chip">Dashboard.tsx &rarr; ADK Context</span></div>
+          <h3>Composite <code class="code-chip">effectiveTreatmentPlan</code> State Binding</h3>
+          <ul>
+            <li>Fuses the edited AI Markdown plan with structured <strong>Physician Clinical Overrides &amp; Directives (<code class="code-chip">HITL Addendum</code>)</strong> into an authoritative context payload.</li>
+            <li>Injects this signed payload directly into <code class="code-chip">/api/generate-questionnaire</code> so sub-agents never regenerate an unapproved plan.</li>
+          </ul>
+        </div>
+        <div class="track-card mech">
+          <div class="track-tag mech">HOW FUNCTIONALITY IS ACHIEVED <span class="code-chip">5-Stage Governance Stepper</span></div>
+          <h3>Quick-Insert Clinical Chips + Live Markdown Workbench</h3>
+          <p>Physicians click <em>Review &amp; Edit (HITL)</em>, tap 1-click clinical directive chips (e.g., urgent hematology co-mgmt, switch oral NSAIDs &rarr; intranasal triptan, pre-visit CBC/blast checks), edit prose, and click <em>Save &amp; HITL Sign-Off Plan</em>.</p>
+        </div>
+        <div class="track-card uniq">
+          <div class="track-tag uniq">UNIQUENESS &amp; CLINICAL ADVANTAGE</div>
+          <h3>Active Algorithmic Governance (Not a Passive Checkbox)</h3>
+          <p><strong>Uniqueness:</strong> Physician edits don't sit inert in a note—they <em>actively reprogram</em> what safety questions the downstream Survey Tailoring sub-agents invent for the patient.</p>
+        </div>
+      </div>
+
+      <div class="screen-box">
+        <div class="screen-bar">
+          <div class="dots"><span></span><span></span><span></span></div>
+          <div class="screen-label">Physician HITL Verified &amp; Signed Plan + Attested Addendum Card</div>
+        </div>
+        <img src="assets/demo/07b_treatment_plan_hitl_signed.png" alt="Physician HITL Signed Treatment Plan" />
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <span>Governance Gate #1 &bull; Physician HITL Review, Overrides &amp; Attestation</span>
+      <span>Slide 8 / 14</span>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 9: STAGE 6 — SCHEMA-DRIVEN FORM RECOMMENDATION AGENT ==================== -->
+  <section class="slide">
+    <div class="top-stripe"></div>
+    <div class="slide-header">
+      <div class="pill-row">
+        <span class="eyebrow arch">Stage 6 &bull; Metadata-Driven ADK Agent</span>
+        <span class="eyebrow mech">Pydantic Output Schema</span>
+      </div>
+      <h2>Specialty-Agnostic ADK Form Recommendation Agent</h2>
+      <p class="subtitle">Automatically ranking clinical instruments from raw REDCap metadata schemas with transparent urgency badges and clinical rationales.</p>
+    </div>
+
+    <div class="parallel-stage">
+      <div class="left-stack">
+        <div class="track-card arch">
+          <div class="track-tag arch">AGENTIC ARCHITECTURE <span class="code-chip">form_recommendation_agent</span></div>
+          <h3>Schema-Constrained ADK <code class="code-chip">Agent</code></h3>
+          <ul>
+            <li>Preprocesses raw REDCap <code class="code-chip">metadata.json</code> via <code class="code-chip">BeautifulSoup</code> + <code class="code-chip">pandas</code> to strip HTML tags and group fields/choices by instrument.</li>
+            <li>Runs <code class="code-chip">Agent(output_schema=FormRecommendations, temperature=0.0)</code> returning typed <code class="code-chip">{form_name, rationale, priority}</code> records.</li>
+          </ul>
+        </div>
+        <div class="track-card mech">
+          <div class="track-tag mech">HOW FUNCTIONALITY IS ACHIEVED <span class="code-chip">AvailableForms.tsx</span></div>
+          <h3>Auto-Toggled Priority Selection + HITL Lock Banner</h3>
+          <p>High/Medium priority forms (<code class="code-chip">Patient Info</code>, <code class="code-chip">Clinical History</code>, <code class="code-chip">Review Systems</code>, <code class="code-chip">Medications</code>, <code class="code-chip">PROMIS</code>) auto-select with per-form clinical explanations while displaying the green <strong>HITL LOCKED</strong> confirmation bar.</p>
+        </div>
+        <div class="track-card uniq">
+          <div class="track-tag uniq">UNIQUENESS &amp; CLINICAL ADVANTAGE</div>
+          <h3>100% Specialty-Agnostic Zero-Code Adaptation</h3>
+          <p><strong>Uniqueness:</strong> Zero hardcoded specialty rules. Swap in Cardiology, Oncology, Neurology, or Rheumatology REDCap JSON dictionaries and the agent prioritizes instruments out-of-the-box.</p>
+        </div>
+      </div>
+
+      <div class="screen-box">
+        <div class="screen-bar">
+          <div class="dots"><span></span><span></span><span></span></div>
+          <div class="screen-label">Priority Clinical Instruments Ranked by ADK Form Recommendation Agent</div>
+        </div>
+        <img src="assets/demo/08_form_customization_priority.png" alt="Survey Form Customization Screen" />
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <span>Suite 2: Form Selection &bull; Schema-Constrained ADK Recommendation Agent</span>
+      <span>Slide 9 / 14</span>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 10: STAGE 7 — DYNAMIC PARALLEL SUB-AGENTS & GATE #2 ==================== -->
+  <section class="slide">
+    <div class="top-stripe"></div>
+    <div class="slide-header">
+      <div class="pill-row">
+        <span class="eyebrow arch">Stage 7 &bull; Dynamic Sub-Agent Spawning</span>
+        <span class="eyebrow uniq">Governance Gate #2 &bull; Coordinator HITL</span>
+      </div>
+      <h2>Parallel Per-Form Tailoring Sub-Agents &amp; Coordinator HITL Deploy</h2>
+      <p class="subtitle">Eliminating patient survey fatigue while injecting precision safety checks derived directly from the physician's signed overrides.</p>
+    </div>
+
+    <div class="parallel-stage">
+      <div class="left-stack">
+        <div class="track-card arch">
+          <div class="track-tag arch">AGENTIC ARCHITECTURE <span class="code-chip">questionnaire_agent_{form}</span></div>
+          <h3>N× Dynamic Parallel ADK Sub-Agents</h3>
+          <ul>
+            <li><code class="code-chip">run_clinical_pipeline()</code> dynamically instantiates one dedicated ADK <code class="code-chip">Agent</code> per selected form and runs all in parallel via <code class="code-chip">asyncio.gather</code>.</li>
+            <li>Each sub-agent receives 4 inputs: <em>Narrative + Signed HITL Plan + Longitudinal Baseline + Blank Form Schema JSON</em>, outputting strict Pydantic <code class="code-chip">FormTailoredQuestions</code>.</li>
+          </ul>
+        </div>
+        <div class="track-card mech">
+          <div class="track-tag mech">HOW FUNCTIONALITY IS ACHIEVED <span class="code-chip">QuestionnaireResult.tsx</span></div>
+          <h3>3-Bucket Classification + Granular HITL Approval</h3>
+          <p>Separates items into <strong>Retained</strong>, <strong>AI-Suggested</strong> (new safety checks like mucosal bleeding, fever &ge;100.4&deg;F, &amp; Ibuprofen cessation), and <strong>Dropped</strong> (with 1-to-1 drop rationales), alongside the pinned <em>HITL Verified Plan</em> sidebar.</p>
+        </div>
+        <div class="track-card uniq">
+          <div class="track-tag uniq">UNIQUENESS &amp; CLINICAL ADVANTAGE</div>
+          <h3>Ends Survey Fatigue Without Losing Safety Precision</h3>
+          <p><strong>Advantage:</strong> Coordinators toggle individual questions on/off and click <em>HITL Approve &amp; Deploy Survey</em>—cutting irrelevant boilerplate while catching life-threatening pre-visit red flags.</p>
+        </div>
+      </div>
+
+      <div class="screen-box">
+        <div class="screen-bar">
+          <div class="dots"><span></span><span></span><span></span></div>
+          <div class="screen-label">AI-Suggested Safety Questions Governed by Physician HITL Sidebar</div>
+        </div>
+        <img src="assets/demo/10_hitl_ai_suggested_questions.png" alt="Tailored Questionnaire HITL Verification Screen" />
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <span>Governance Gate #2 &bull; Parallel Form Sub-Agents &amp; Coordinator HITL</span>
+      <span>Slide 10 / 14</span>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 11: STAGE 8 — GCS DEPLOY & CONVERSATIONAL ADK SURVEY ASSISTANT ==================== -->
+  <section class="slide">
+    <div class="top-stripe"></div>
+    <div class="slide-header">
+      <div class="pill-row">
+        <span class="eyebrow arch">Stage 8 &bull; Tool-Equipped ADK LlmAgent + MCP</span>
+        <span class="eyebrow uniq">Suite 3 &bull; Patient Intake Portal</span>
+      </div>
+      <h2>Cloud Survey Persistence &amp; Conversational ADK Survey Assistant</h2>
+      <p class="subtitle">Closing the loop between clinician governance and home patient intake via tool-augmented Google ADK conversation.</p>
+    </div>
+
+    <div class="parallel-stage">
+      <div class="left-stack">
+        <div class="track-card arch">
+          <div class="track-tag arch">AGENTIC ARCHITECTURE <span class="code-chip">survey_assistant/agent.py</span></div>
+          <h3>Stateful ADK <code class="code-chip">LlmAgent</code> + Tool &amp; MCP Binding</h3>
+          <ul>
+            <li>Root <code class="code-chip">LlmAgent(name="Patient_Survey_Assistant")</code> managed by persistent <code class="code-chip">survey_assistant_runner</code> (<code class="code-chip">auto_create_session=True</code>).</li>
+            <li>Equipped with Python tool <code class="code-chip">get_survey_questions(mrn, survey_id)</code> + optional authenticated <code class="code-chip">AgentRegistry</code> <strong>MCP Toolset</strong> (with runtime ADC token refresh patch).</li>
+          </ul>
+        </div>
+        <div class="track-card mech">
+          <div class="track-tag mech">HOW FUNCTIONALITY IS ACHIEVED <span class="code-chip">/api/deploy-survey &rarr; /api/run-session</span></div>
+          <h3>Dual-Tier GCS Storage + Automatic Context Injection</h3>
+          <p>Deploy writes <code class="code-chip">{mrn}_{uuid}.json</code> to <strong>Google Cloud Storage</strong> (with local <code class="code-chip">data/deployed_surveys/</code> fallback). Clicking <em>"Yes, let's start!"</em> injects <code class="code-chip">MRN</code> + <code class="code-chip">Survey ID</code> so the agent fetches the exact approved survey via tool call.</p>
+        </div>
+        <div class="track-card uniq">
+          <div class="track-tag uniq">UNIQUENESS &amp; PATIENT ADVANTAGE</div>
+          <h3>Zero-Login Empathetic Multimodal Intake</h3>
+          <p><strong>Advantage:</strong> No cloud IAM barriers for patients—guides patients empathetically <em>one question at a time</em> via quick-reply chips, keyboard, or browser speech-to-text.</p>
+        </div>
+      </div>
+
+      <div class="screen-box">
+        <div class="screen-bar">
+          <div class="dots"><span></span><span></span><span></span></div>
+          <div class="screen-label">Suite 3 — Live Conversational ADK Intelligent Survey Assistant</div>
+        </div>
+        <img src="assets/demo/12_intelligent_survey_assistant.png" alt="Intelligent Survey Assistant Chat Screen" />
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <span>Suite 3: Patient Portal &bull; Tool-Equipped ADK LlmAgent &amp; GCS/MCP Retrieval</span>
+      <span>Slide 11 / 14</span>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 12: HOW OVERALL FUNCTIONALITY IS ACHIEVED (MECHANICS MATRIX) ==================== -->
+  <section class="slide">
+    <div class="top-stripe"></div>
+    <div class="slide-header">
+      <div class="pill-row">
+        <span class="eyebrow mech">Engineering Synthesis</span>
+        <span class="eyebrow arch">6 Core Execution Mechanisms</span>
+      </div>
+      <h2>How Overall Functionality Is Achieved End-to-End</h2>
+      <p class="subtitle">Six interlocking architectural mechanisms connect raw EHR/PDF inputs to governed, patient-ready conversational follow-up without latency or hallucination.</p>
+    </div>
+
+    <div class="matrix-wrap">
+      <table class="arch-matrix">
+        <thead>
+          <tr>
+            <th>Architectural Pillar</th>
+            <th>Code &amp; SDK Implementation</th>
+            <th>How It Executes Under the Hood</th>
+            <th>Functional Capability Unlocked</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1. Dual Async Fan-Out Concurrency</td>
+            <td>asyncio.gather() in clingen_synth &amp; survey_tailor</td>
+            <td>Executes 8 section scribes in parallel (Stage 1) and N per-form tailoring ADK agents in parallel (Stage 7).</td>
+            <td>Interactive &lt; 4s clinical note &amp; multi-form survey generation</td>
+          </tr>
+          <tr>
+            <td>2. Two-Pass Grounding + Refiner</td>
+            <td>DiscoveryEngine CheckGrounding + Gemini Refiner</td>
+            <td>Pass 1 detects factual spans; Pass 2 maps clinical score interpretations to exact REDCap field keys.</td>
+            <td>1-click [n] citation scrolling &amp; blue glow on raw intake fields</td>
+          </tr>
+          <tr>
+            <td>3. Live LLM-as-a-Judge Auditing</td>
+            <td>vertexai.preview.evaluation.EvalTask</td>
+            <td>Runs non-blocking thread pool evaluation across 7 pointwise rubric templates per generated section.</td>
+            <td>Real-time AI Audit trust cards &amp; Groundedness breakdown</td>
+          </tr>
+          <tr>
+            <td>4. Schema-Locked ADK Agents</td>
+            <td>google.adk.Agent + Pydantic output_schema + temp=0.0</td>
+            <td>Decouples clinical logic into Markdown prompts while forcing strict JSON contracts &amp; tenacity 429 retries.</td>
+            <td>Zero malformed outputs; deterministic form &amp; question cards</td>
+          </tr>
+          <tr>
+            <td>5. Stateful Dual-HITL Propagation</td>
+            <td>effectiveTreatmentPlan + HITL Approve Gate</td>
+            <td>Binds signed physician overrides into downstream ADK prompts and locks survey deployment behind review.</td>
+            <td>100% clinician-governed care plans &amp; custom safety questions</td>
+          </tr>
+          <tr>
+            <td>6. Tool &amp; MCP Session Continuity</td>
+            <td>LlmAgent + get_survey_questions + GCS/Local</td>
+            <td>Persists deployed JSON to GCS + local disk; ADK Runner fetches survey dynamically per session_id.</td>
+            <td>Seamless handoff from coordinator click to live patient chat</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="slide-footer">
+      <span>Agentic-PhysicianAssist &bull; End-to-End Execution Mechanics</span>
+      <span>Slide 12 / 14</span>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 13: UNIQUENESS & STRATEGIC ADVANTAGES ==================== -->
+  <section class="slide">
+    <div class="top-stripe"></div>
+    <div class="slide-header">
+      <div class="pill-row">
+        <span class="eyebrow uniq">Platform Differentiation</span>
+        <span class="eyebrow arch">Clinical, Patient &amp; Technical Value</span>
+      </div>
+      <h2>What Makes Agentic-PhysicianAssist Unique &amp; Strategic Advantages</h2>
+      <p class="subtitle">Moving beyond passive "ambient scribes" into a closed-loop, verifiable, multi-agent clinical intelligence operating system.</p>
+    </div>
+
+    <div class="grid-3">
+      <div class="track-card arch" style="justify-content: flex-start; gap: 8px;">
+        <div class="track-tag arch">UNIQUENESS #1 &bull; CLOSED-LOOP CONTINUITY</div>
+        <h3>End-to-End Clinical Lifecycle</h3>
+        <p>Point solutions stop at drafting a note. Agentic-PhysicianAssist connects <strong>4 stages in one continuous state graph</strong>:</p>
+        <ul>
+          <li>Raw Multi-System Intake + Pathology PDFs</li>
+          <li>Grounded 8-Section Scribe + AI Quality Audit</li>
+          <li>Physician HITL Treatment Plan &amp; Overrides</li>
+          <li>Tailored Follow-Up Survey &rarr; Conversational Patient Agent</li>
+        </ul>
+      </div>
+
+      <div class="track-card mech" style="justify-content: flex-start; gap: 8px;">
+        <div class="track-tag mech">UNIQUENESS #2 &bull; TRIPLE-LAYER CLINICAL TRUST</div>
+        <h3>Verifiable AI Safety Architecture</h3>
+        <p>Every AI output is protected by three independent safety layers before impacting care:</p>
+        <ul>
+          <li><strong>Field-Level Citations:</strong> Discovery Engine + Semantic Field Refiner (<code class="code-chip">[n]</code>).</li>
+          <li><strong>Quantitative Judge:</strong> 7-metric Vertex AI <code class="code-chip">EvalTask</code> audit panel.</li>
+          <li><strong>Dual HITL Attestation:</strong> Physician Care Plan Sign-Off + Coordinator Survey Approval.</li>
+        </ul>
+      </div>
+
+      <div class="track-card uniq" style="justify-content: flex-start; gap: 8px;">
+        <div class="track-tag uniq">UNIQUENESS #3 &bull; SPECIALTY-AGNOSTIC ENGINE</div>
+        <h3>Metadata-Driven Zero-Code Scaling</h3>
+        <p>No hardcoded medical rules or brittle decision trees:</p>
+        <ul>
+          <li>Ingests any REDCap/FHIR-style instrument dictionary (<code class="code-chip">metadata.json</code>).</li>
+          <li>Cross-specialty drug/comorbidity reasoning (Oncology + GI + Neurology + Genetics).</li>
+          <li>Graceful hybrid runtime: full GCP Cloud Run + GCS or offline local fallback.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="kpi-strip">
+      <div class="kpi-box">
+        <div class="num">&lt; 4 Sec</div>
+        <div class="lbl">Parallel 8-section clinical note synthesis via concurrent Gemini 3.5 Flash</div>
+      </div>
+      <div class="kpi-box">
+        <div class="num">100%</div>
+        <div class="lbl">Inline claim-to-field provenance + Dual Physician/Coordinator HITL locks</div>
+      </div>
+      <div class="kpi-box">
+        <div class="num">30–50%</div>
+        <div class="lbl">Reduction in redundant patient questions while adding targeted safety checks</div>
+      </div>
+      <div class="kpi-box">
+        <div class="num">Zero</div>
+        <div class="lbl">Patient cloud login friction or specialty-specific code rewrites required</div>
+      </div>
+    </div>
+
+    <div class="slide-footer" style="margin-top: 8px;">
+      <span>Agentic-PhysicianAssist &bull; Uniqueness &amp; Quantified Advantages</span>
+      <span>Slide 13 / 14</span>
+    </div>
+  </section>
+
+  <!-- ==================== SLIDE 14: CLOUD-NATIVE PRODUCTION ARCHITECTURE ==================== -->
+  <section class="slide">
+    <div class="top-stripe"></div>
+    <div class="slide-header">
+      <div class="pill-row">
+        <span class="eyebrow mech">Production Deployment</span>
+        <span class="eyebrow arch">Cloud Run &bull; Terraform IaC &bull; Vertex AI</span>
+      </div>
+      <h2>Enterprise Cloud-Native Deployment &amp; Security Architecture</h2>
+      <p class="subtitle">Single-container unified packaging, least-privilege IAM, automated Terraform provisioning, and resilient hybrid cloud/local execution.</p>
+    </div>
+
+    <div class="grid-2">
+      <div class="left-stack">
+        <div class="track-card arch">
+          <div class="track-tag arch">UNIFIED CONTAINER ARCHITECTURE <span class="code-chip">Dockerfile &bull; Cloud Build</span></div>
+          <h3>Multi-Stage Single-Origin Deployment</h3>
+          <ul>
+            <li><strong>Stage 1 (Node 24):</strong> Compiles React 19 + TypeScript + Vite SPA into static <code class="code-chip">frontend/dist</code> assets.</li>
+            <li><strong>Stage 2 (Python 3.12):</strong> FastAPI <code class="code-chip">main.py</code> serves compiled SPA and <code class="code-chip">/api/*</code> agent endpoints on a single port (<code class="code-chip">8000</code>)—eliminating CORS complexity in production.</li>
+          </ul>
+        </div>
+        <div class="track-card mech">
+          <div class="track-tag mech">DECLARATIVE TERRAFORM IaC <span class="code-chip">terraform/main.tf</span></div>
+          <h3>Automated Google Cloud Provisioning</h3>
+          <ul>
+            <li>Provisions <strong>Cloud Run v2</strong> (<code class="code-chip">clingen-app</code>), <strong>Artifact Registry</strong>, and <strong>Cloud Storage</strong> survey bucket.</li>
+            <li>Dedicated Service Account (<code class="code-chip">agentic-physicianassist-sa</code>) with least-privilege roles: <code class="code-chip">aiplatform.user</code>, <code class="code-chip">discoveryengine.viewer</code>, <code class="code-chip">storage.objectAdmin</code>, and <code class="code-chip">agentregistry.viewer</code>.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="left-stack">
+        <div class="track-card func">
+          <div class="track-tag func">RESILIENT HYBRID RUNTIME <span class="code-chip">settings.py</span></div>
+          <h3>Built-In Production &amp; Developer Resilience</h3>
+          <ul>
+            <li><strong>Tenacity Rate-Limit Recovery:</strong> Automatic exponential backoff on Vertex AI <code class="code-chip">429 RESOURCE_EXHAUSTED</code> bursts during parallel fan-out.</li>
+            <li><strong>Graceful Storage &amp; MCP Fallbacks:</strong> Seamlessly falls back to local <code class="code-chip">data/deployed_surveys/</code> and built-in Python tools when offline or outside VPC.</li>
+            <li><strong>Reasoning Engine Auth Fix:</strong> Runtime ADC token refresh prevents pickled credential failures in Vertex Agent Engine.</li>
+          </ul>
+        </div>
+        <div class="track-card uniq">
+          <div class="track-tag uniq">READY-TO-EXPLORE ASSETS IN REPOSITORY</div>
+          <h3>Complete Documentation, Live Video &amp; Decks</h3>
+          <ul>
+            <li><strong>Live Interactive Video:</strong> <code class="code-chip">docs/Agentic_PhysicianAssist_Demo_Video.mp4</code></li>
+            <li><strong>PowerPoint Deck:</strong> <code class="code-chip">docs/Agentic_PhysicianAssist_Architecture_Presentation.pptx</code></li>
+            <li><strong>Quick Launch:</strong> <code class="code-chip">make run</code> (Local) &bull; <code class="code-chip">make deploy</code> (Cloud Run)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <span>Agentic-PhysicianAssist &bull; Google Cloud Run &amp; Terraform Production Architecture</span>
+      <span>Slide 14 / 14</span>
+    </div>
+  </section>
+
+</div>
+
+<!-- Navigation Controls -->
+<div class="controls">
+  <div><strong>Agentic-PhysicianAssist</strong> &mdash; Parallel Agentic Architecture &amp; Clinical Functionality Deck</div>
+  <div class="progress-dots" id="dots"></div>
+  <div class="ctrl-btns">
+    <span id="counter" style="margin-right: 8px; font-weight: 700; color: #94a3b8;">1 / 17</span>
+    <button class="ctrl" onclick="prevSlide()">&larr; Prev</button>
+    <button class="ctrl" onclick="nextSlide()">Next &rarr;</button>
+    <button class="ctrl" onclick="window.print()">Print / PDF</button>
+  </div>
+</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const dotsWrap = document.getElementById('dots');
+  const counter = document.getElementById('counter');
+  let idx = 0;
+
+  slides.forEach((s, i) => {
+    const d = document.createElement('div');
+    d.className = 'p-dot' + (i === 0 ? ' active' : '');
+    d.onclick = () => showSlide(i);
+    dotsWrap.appendChild(d);
+    const fSpans = s.querySelectorAll('.slide-footer span');
+    if (fSpans.length >= 2) {
+      fSpans[fSpans.length - 1].textContent = (i === 0 ? 'Use \u2190 / \u2192 keys to navigate \u2022 ' : '') + `Slide ${i + 1} / ${slides.length}`;
+    }
+  });
+
+  function showSlide(n) {
+    idx = (n + slides.length) % slides.length;
+    slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+    Array.from(dotsWrap.children).forEach((d, i) => d.classList.toggle('active', i === idx));
+    counter.textContent = (idx + 1) + ' / ' + slides.length;
+  }
+
+  function nextSlide() { showSlide(idx + 1); }
+  function prevSlide() { showSlide(idx - 1); }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); nextSlide(); }
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); prevSlide(); }
+    if (e.key === 'Home') { e.preventDefault(); showSlide(0); }
+    if (e.key === 'End') { e.preventDefault(); showSlide(slides.length - 1); }
+  });
+</script>
+
+</body>
+</html>

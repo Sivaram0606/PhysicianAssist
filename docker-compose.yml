@@ -10,8 +10,8 @@ services:
       - HOST=0.0.0.0
       - PORT=8000
       - GOOGLE_APPLICATION_CREDENTIALS=/root/.config/gcloud/application_default_credentials.json
-      - GOOGLE_CLOUD_PROJECT=my-project-ssi-364811
-      - AGENTIC_PHYSICIANASSIST_PROJECT_ID=my-project-ssi-364811
+      - GOOGLE_CLOUD_PROJECT=${GOOGLE_CLOUD_PROJECT:-agentic-physicianassist-2257}
+      - AGENTIC_PHYSICIANASSIST_PROJECT_ID=${AGENTIC_PHYSICIANASSIST_PROJECT_ID:-agentic-physicianassist-2257}
     # Mount local directories for hot-reloading and gcloud credentials path for ADC
     volumes:
       - .:/app

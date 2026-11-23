@@ -1,4 +1,4 @@
-project_id         = "my-project-ssi-364811"
+project_id         = "agentic-physicianassist-2257"
 region             = "us-central1"
 location           = "global"
 service_name       = "clingen-app"

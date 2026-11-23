@@ -1,7 +1,7 @@
 variable "project_id" {
   description = "The GCP Project ID where resources will be deployed."
   type        = string
-  default     = "my-project-ssi-364811"
+  default     = "agentic-physicianassist-2257"
 }
 
 variable "region" {
